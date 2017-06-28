@@ -3,5 +3,6 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="win">#90000000</color>
+    <color name="color_ms_shadow_normal">#25000000</color>
+    <color name="color_ms_shadow_select">#66000000</color>
 </resources>

@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">SelectPicture</string>
+    <string name="record_retry">重试</string>
+    <string name="record_confirm">使用</string>
+    <string name="sm_all_image">所有图片</string>
+    <string name="sm_all_video">所有视频</string>
+    <string name="sm_all_image_video">图片和视频</string>
 </resources>
