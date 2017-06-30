@@ -68,7 +68,7 @@ public class VideoItemDelegate extends ItemViewDelegate<MediaBean, VideoItemDele
     }
 
     private String toTime(long duration) {
-        int totalSecond = (int) (duration / 1000);
+        int totalSecond = (int) (duration / 1000) + (duration % 1000 < 500 ? 0 : 1);
         int h = totalSecond / 3600;
         int m = totalSecond % 3600 / 60;
         int s = totalSecond % 3600 % 60;

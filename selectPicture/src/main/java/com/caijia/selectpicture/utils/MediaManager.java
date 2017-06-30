@@ -81,7 +81,7 @@ public class MediaManager {
                         List<MediaBean> imageList = queryImage(context);
                         List<MediaGroup> imageGroupList = toMediaGroup(IMAGE, imageList);
                         if (!imageList.isEmpty()) {
-                            imageGroupList.add(0,new MediaGroup(IMAGE,allImageText, imageList));
+                            imageGroupList.add(0,new MediaGroup(true,IMAGE,allImageText, imageList));
                         }
                         list.add(imageList);
                         list.add(imageGroupList);
@@ -92,7 +92,7 @@ public class MediaManager {
                         List<MediaBean> videoList = queryVideo(context);
                         List<MediaGroup> videoGroupList = toMediaGroup(VIDEO, videoList);
                         if (!videoList.isEmpty()) {
-                            videoGroupList.add(0,new MediaGroup(VIDEO,allVideoText, videoList));
+                            videoGroupList.add(0,new MediaGroup(true,VIDEO,allVideoText, videoList));
                         }
                         list.add(videoList);
                         list.add(videoGroupList);
@@ -111,10 +111,10 @@ public class MediaManager {
                         List<MediaGroup> groupList = new ArrayList<>();
                         list.add(mediaList);
                         if (!mediaList.isEmpty()) {
-                            groupList.add(0,new MediaGroup(IMAGE,imageVideoText, mediaList));
+                            groupList.add(0,new MediaGroup(true,IMAGE,imageVideoText, mediaList));
                         }
                         if (!videoList.isEmpty()) {
-                            groupList.add(groupList.size(),new MediaGroup(VIDEO,allVideoText, videoList));
+                            groupList.add(groupList.size(),new MediaGroup(false,VIDEO,allVideoText, videoList));
                         }
                         groupList.addAll(toMediaGroup(IMAGE,imageList));
                         list.add(groupList);

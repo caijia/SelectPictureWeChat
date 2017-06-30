@@ -13,7 +13,8 @@ public class MediaGroup implements Parcelable {
     private int mediaType;
     private boolean select;
 
-    public MediaGroup(int mediaType,String groupName, List<MediaBean> mediaList) {
+    public MediaGroup(boolean isSelect,int mediaType,String groupName, List<MediaBean> mediaList) {
+        this.select = isSelect;
         this.mediaType = mediaType;
         this.groupName = groupName;
         this.mediaList = mediaList;
