@@ -3,6 +3,7 @@ package com.caijia.selectpicture.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -20,13 +21,18 @@ import com.caijia.selectpicture.bean.MediaBean;
 import com.caijia.selectpicture.bean.MediaGroup;
 import com.caijia.selectpicture.ui.adapter.MediaAdapter;
 import com.caijia.selectpicture.ui.adapter.itemDelegate.MediaGroupItemDelegate;
+import com.caijia.selectpicture.ui.adapter.itemDelegate.TakePictureItemDelegate;
+import com.caijia.selectpicture.utils.CameraHelper;
 import com.caijia.selectpicture.utils.DeviceUtil;
+import com.caijia.selectpicture.utils.FileUtil;
 import com.caijia.selectpicture.utils.MediaManager;
 import com.caijia.selectpicture.widget.GridSpacingItemDecoration;
 
+import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
+import java.util.UUID;
 
 import static com.caijia.selectpicture.utils.MediaType.IMAGE;
 import static com.caijia.selectpicture.utils.MediaType.IMAGE_VIDEO;
@@ -39,18 +45,13 @@ import static com.caijia.selectpicture.utils.MediaType.VIDEO;
 public class SelectMediaActivity extends AppCompatActivity implements
         MediaManager.OnGetLocalMediaListener, View.OnClickListener,
         MediaGroupFragment.OnAnimatorListener, MediaGroupItemDelegate.OnItemClickListener,
-        MediaGroupFragment.OnClickShadowListener, MediaAdapter.OnItemClickListener {
+        MediaGroupFragment.OnClickShadowListener, MediaAdapter.OnItemClickListener,
+        TakePictureItemDelegate.OnTakePictureListener {
 
+    private static final int REQ_CAMERA = 201;
     public static final String RESULT_MEDIA = "result:media";
     private static final String TAG_PICTURE_GROUP = "tag:picture_group";
     private static final String PARAMS_MEDIA_TYPE = "params:media_type";
-
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({VIDEO, IMAGE, IMAGE_VIDEO})
-    public @interface MediaType {
-
-    }
-
     private MediaAdapter mAdapter;
     private TextView titleTv;
     private TextView selectPictureGroupTv;
@@ -58,12 +59,24 @@ public class SelectMediaActivity extends AppCompatActivity implements
     private List<MediaGroup> groupList;
     private MediaGroupFragment groupFragment;
     private boolean isShowDialog;
-    private int mediaType = IMAGE_VIDEO;
+    private int mediaType = IMAGE;
 
-    public static Intent getIntent(Context context,@MediaType int type) {
+    public static Intent getIntent(Context context, @MediaType int type) {
         Intent i = new Intent(context, SelectMediaActivity.class);
         i.putExtra(PARAMS_MEDIA_TYPE, type);
         return i;
+    }
+
+    private File takePictureSaveFile;
+
+    @Override
+    public void onTakePicture() {
+        String fileName = String.format("%s.jpg", UUID.randomUUID().toString().replaceAll("-", ""));
+        takePictureSaveFile = FileUtil.createDiskCacheFile(this, fileName);
+        if (takePictureSaveFile == null) {
+            return;
+        }
+        CameraHelper.getInstance().takePicture(this,takePictureSaveFile.getAbsolutePath(),REQ_CAMERA);
     }
 
     @Override
@@ -82,6 +95,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
         titleTv = (TextView) findViewById(R.id.title_tv);
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
         toolbar.setTitle("");
+        setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_sm_camera_video);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,9 +103,8 @@ public class SelectMediaActivity extends AppCompatActivity implements
                 onBackPressed();
             }
         });
-        setSupportActionBar(toolbar);
 
-        mAdapter = new MediaAdapter(this);
+        mAdapter = new MediaAdapter(this,false,this);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         int spacing = DeviceUtil.dpToPx(this, 2);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(spacing, true, Color.TRANSPARENT));
@@ -103,11 +116,12 @@ public class SelectMediaActivity extends AppCompatActivity implements
     }
 
     private void loadMedia() {
-        MediaManager.getInstance().getLocalMedia(this,mediaType,this);
+        MediaManager.getInstance().getLocalMedia(this, mediaType, this);
     }
 
     @Override
     public void onGetMediaFinish(List<MediaBean> list, List<MediaGroup> groupList) {
+        list.add(0,new MediaBean(com.caijia.selectpicture.utils.MediaType.CAMERA));
         this.groupList = groupList;
         mAdapter.updateItems(list);
     }
@@ -200,10 +214,35 @@ public class SelectMediaActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+        switch (requestCode) {
+            case REQ_CAMERA:{
+                if (takePictureSaveFile == null) {
+                    return;
+                }
+                Uri contentUri = Uri.fromFile(takePictureSaveFile);
+                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,contentUri);
+                sendBroadcast(mediaScanIntent);
+                break;
+            }
+        }
+    }
+
+    @Override
     public void onItemClick(int position, MediaBean item) {
         Intent i = new Intent();
         i.putExtra(RESULT_MEDIA, item);
         setResult(RESULT_OK, i);
         finish();
+    }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({VIDEO, IMAGE, IMAGE_VIDEO})
+    public @interface MediaType {
+
     }
 }

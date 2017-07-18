@@ -16,8 +16,9 @@
         android:text="Local_picture"/>
 
     <Button
-        android:id="@+id/record_video_btn"
+        android:id="@+id/clip_image_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="record_video"/>
+        android:text="Local_picture"/>
+
 </LinearLayout>

@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.caijia.adapterdelegate.ItemViewDelegate;
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaBean;
 import com.caijia.selectpicture.utils.ImageLoader;
@@ -21,9 +22,9 @@ import static com.caijia.selectpicture.utils.MediaType.VIDEO;
 import static java.lang.String.format;
 
 /**
+ * 视频类型
  * Created by cai.jia on 2017/6/28 0028
  */
-
 public class VideoItemDelegate extends ItemViewDelegate<MediaBean, VideoItemDelegate.VideoVH> {
 
     /**
@@ -40,19 +41,19 @@ public class VideoItemDelegate extends ItemViewDelegate<MediaBean, VideoItemDele
     }
 
     @Override
-    VideoVH onCreateViewHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
+    public VideoVH onCreateViewHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_select_video, parent, false);
         return new VideoVH(view,((RecyclerView)parent).getAdapter());
     }
 
     @Override
-    boolean isForViewType(@NonNull Object item) {
+    public boolean isForViewType(@NonNull Object item) {
         return item instanceof MediaBean && ((MediaBean) item).getMediaType() == VIDEO;
     }
 
     @Override
-    void onBindViewHolder(List<?> dataSource, MediaBean item, RecyclerView.Adapter adapter,
+    public void onBindViewHolder(List<?> dataSource, MediaBean item, RecyclerView.Adapter adapter,
                           VideoVH holder, int position) {
         ImageLoader.getInstance().loadImage(item.getPath(),
                 holder.imageView, R.drawable.ic_sm_image_default_bg);
@@ -81,7 +82,7 @@ public class VideoItemDelegate extends ItemViewDelegate<MediaBean, VideoItemDele
     }
 
     @Override
-    void onBindViewHolder(List<?> dataSource, MediaBean item, RecyclerView.Adapter adapter,
+    public void onBindViewHolder(List<?> dataSource, MediaBean item, RecyclerView.Adapter adapter,
                           VideoVH holder, int position, List<Object> payloads) {
         holder.selectTv.setSelected(item.isSelect());
         holder.shadowView.setBackgroundColor(item.isSelect() ? shadowColorSelect : shadowColorNormal);

@@ -14,6 +14,7 @@ import com.caijia.selectpicture.bean.MediaGroup;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,8 +69,12 @@ public class MediaManager {
             @Override
             protected void onPostExecute(List<Object> list) {
                 if (listener != null) {
-                    listener.onGetMediaFinish((List<MediaBean>) list.get(0),
-                            (List<MediaGroup>) list.get(1));
+                    List<MediaBean> allMedia = new ArrayList<>();
+                    allMedia.addAll((Collection<? extends MediaBean>) list.get(0));
+
+                    List<MediaGroup> allMediaGroup = new ArrayList<>();
+                    allMediaGroup.addAll((Collection<? extends MediaGroup>) list.get(1));
+                    listener.onGetMediaFinish(allMedia,allMediaGroup);
                 }
             }
 

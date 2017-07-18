@@ -8,7 +8,7 @@
         android:id="@+id/tool_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:background="#393A3E">
+        android:background="@color/color_ms_primary">
 
         <TextView
             android:id="@+id/title_tv"
@@ -41,7 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_alignParentBottom="true"
-        android:background="#393A3E">
+        android:background="@color/color_ms_primary">
 
         <TextView
             android:id="@+id/select_picture_group_tv"

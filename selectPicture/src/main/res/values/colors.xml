@@ -5,4 +5,6 @@
     <color name="colorAccent">#FF4081</color>
     <color name="color_ms_shadow_normal">#25000000</color>
     <color name="color_ms_shadow_select">#66000000</color>
+    <color name="color_ms_primary">#393A3E</color>
+    <color name="color_ms_divider">#dddddd</color>
 </resources>

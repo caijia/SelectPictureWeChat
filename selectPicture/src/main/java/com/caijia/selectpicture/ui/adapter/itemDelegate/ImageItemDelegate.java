@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.caijia.adapterdelegate.ItemViewDelegate;
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaBean;
 import com.caijia.selectpicture.utils.ImageLoader;
@@ -19,6 +20,7 @@ import java.util.List;
 import static com.caijia.selectpicture.utils.MediaType.IMAGE;
 
 /**
+ * 图片类型
  * Created by cai.jia on 2017/6/28 0028
  */
 
@@ -38,19 +40,19 @@ public class ImageItemDelegate extends ItemViewDelegate<MediaBean, ImageItemDele
     }
 
     @Override
-    ImageVH onCreateViewHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
+    public ImageVH onCreateViewHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_select_image, parent, false);
         return new ImageVH(view,((RecyclerView)parent).getAdapter());
     }
 
     @Override
-    boolean isForViewType(@NonNull Object item) {
+    public boolean isForViewType(@NonNull Object item) {
         return item instanceof MediaBean && ((MediaBean) item).getMediaType() == IMAGE;
     }
 
     @Override
-    void onBindViewHolder(List<?> dataSource, MediaBean item, RecyclerView.Adapter adapter,
+    public void onBindViewHolder(List<?> dataSource, MediaBean item, RecyclerView.Adapter adapter,
                           ImageVH holder, int position) {
         ImageLoader.getInstance().loadImage(item.getPath(),
                 holder.imageView, R.drawable.ic_sm_image_default_bg);
@@ -66,7 +68,7 @@ public class ImageItemDelegate extends ItemViewDelegate<MediaBean, ImageItemDele
     }
 
     @Override
-    void onBindViewHolder(List<?> dataSource, MediaBean item, RecyclerView.Adapter adapter,
+    public void onBindViewHolder(List<?> dataSource, MediaBean item, RecyclerView.Adapter adapter,
                           ImageVH holder, int position, List<Object> payloads) {
         holder.selectTv.setSelected(item.isSelect());
         holder.shadowView.setBackgroundColor(item.isSelect() ? shadowColorSelect : shadowColorNormal);

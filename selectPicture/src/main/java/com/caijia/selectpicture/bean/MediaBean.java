@@ -18,6 +18,13 @@ public class MediaBean implements Parcelable ,Comparable<MediaBean> {
     private boolean select;
     private long dateModified;
 
+    public MediaBean() {
+    }
+
+    public MediaBean(int mediaType) {
+        this.mediaType = mediaType;
+    }
+
     public MediaBean(long dateModified,long duration, long size, String fileName, String path,
                      int mediaType) {
         this.dateModified = dateModified;

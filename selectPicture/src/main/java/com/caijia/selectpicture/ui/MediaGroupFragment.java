@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -96,7 +97,9 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         MediaGroupAdapter mAdapter = new MediaGroupAdapter(getContext(), onItemClickListener);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.addItemDecoration(new LineItemDecoration(getContext(), LineItemDecoration.VERTICAL));
+        int spacing = DeviceUtil.dpToPx(getContext(), 0.5f);
+        int color = ContextCompat.getColor(getContext(), R.color.color_ms_divider);
+        recyclerView.addItemDecoration(new LineItemDecoration(LineItemDecoration.VERTICAL,spacing,color));
         recyclerView.setAdapter(mAdapter);
 
         if (groupList != null) {

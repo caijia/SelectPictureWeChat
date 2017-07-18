@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.caijia.adapterdelegate.ItemViewDelegate;
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaGroup;
 import com.caijia.selectpicture.utils.ImageLoader;
@@ -17,9 +18,9 @@ import com.caijia.selectpicture.utils.MediaType;
 import java.util.List;
 
 /**
+ * 多媒体组类型
  * Created by cai.jia on 2017/6/28 0028
  */
-
 public class MediaGroupItemDelegate extends ItemViewDelegate<MediaGroup,MediaGroupItemDelegate.MediaGroupVH> {
 
     public MediaGroupItemDelegate(@Nullable OnItemClickListener onItemClickListener) {
@@ -27,14 +28,14 @@ public class MediaGroupItemDelegate extends ItemViewDelegate<MediaGroup,MediaGro
     }
 
     @Override
-    MediaGroupVH onCreateViewHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
+    public MediaGroupVH onCreateViewHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_select_media_group, parent, false);
         return new MediaGroupVH(view,((RecyclerView)parent).getAdapter(),onItemClickListener);
     }
 
     @Override
-    void onBindViewHolder(List<?> dataSource, MediaGroup item, RecyclerView.Adapter adapter,
+    public void onBindViewHolder(List<?> dataSource, MediaGroup item, RecyclerView.Adapter adapter,
                           MediaGroupVH holder, int position) {
         String imagePath = item.getFirst() == null ? "" : item.getFirst().getPath();
         ImageLoader.getInstance().loadImage(imagePath,
@@ -51,7 +52,7 @@ public class MediaGroupItemDelegate extends ItemViewDelegate<MediaGroup,MediaGro
     }
 
     @Override
-    boolean isForViewType(@NonNull Object item) {
+    public boolean isForViewType(@NonNull Object item) {
         return item instanceof MediaGroup;
     }
 
