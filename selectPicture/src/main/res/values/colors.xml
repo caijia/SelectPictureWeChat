@@ -2,9 +2,12 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#18AD15</color>
+    <color name="color_ms_multi_select_normal">#18AD15</color>
+    <color name="color_ms_multi_select_pressed">#056103</color>
     <color name="color_ms_shadow_normal">#25000000</color>
     <color name="color_ms_shadow_select">#66000000</color>
     <color name="color_ms_primary">#393A3E</color>
     <color name="color_ms_divider">#dddddd</color>
+    <color name="color_ms_primary_dark">#303135</color>
 </resources>

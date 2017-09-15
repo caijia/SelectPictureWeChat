@@ -4,6 +4,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 
+import com.caijia.selectpicture.utils.MediaType;
+
 import java.util.List;
 
 public class MediaGroup implements Parcelable {
@@ -42,7 +44,17 @@ public class MediaGroup implements Parcelable {
     public
     @Nullable
     MediaBean getFirst() {
-        return mediaList != null && !mediaList.isEmpty() ? mediaList.get(0) : null;
+        if (mediaList != null && !mediaList.isEmpty()) {
+            MediaBean firstBean = mediaList.get(0);
+            boolean isCamera = firstBean.getMediaType() == MediaType.CAMERA;
+            if (isCamera && mediaList.size() > 1) {
+                return mediaList.get(1);
+
+            }else{
+                return firstBean;
+            }
+        }
+        return null;
     }
 
     public int getSize() {
@@ -59,6 +71,15 @@ public class MediaGroup implements Parcelable {
 
     public List<MediaBean> getMediaList() {
         return mediaList;
+    }
+
+    public void addMediaBean(int index, MediaBean bean) {
+        if (mediaList != null) {
+            int size = mediaList.size();
+            if (index >= 0 && index <= size) {
+                mediaList.add(index, bean);
+            }
+        }
     }
 
     public void setMediaList(List<MediaBean> mediaList) {

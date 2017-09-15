@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Environment;
 
 import java.io.File;
-import java.io.IOException;
 
 
 /**
@@ -13,7 +12,7 @@ import java.io.IOException;
 public class FileUtil {
 
     public static boolean isMountSdCard() {
-        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) &&
+        return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) &&
                 !Environment.isExternalStorageRemovable();
     }
 
@@ -22,21 +21,19 @@ public class FileUtil {
         return new File(diskCacheDir, fileName);
     }
 
-    public static File createDiskCacheFile(Context context, String uniqueName) {
-        final String cachePath =
-                Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
-                        !Environment.isExternalStorageRemovable() ?
-                        context.getExternalCacheDir().getPath() : context.getCacheDir().getPath();
+    private static String getCachePath(Context context) {
+        return isMountSdCard() && context.getExternalCacheDir() != null
+                ? context.getExternalCacheDir().getPath()
+                : context.getCacheDir().getPath();
+    }
 
+    public static File createDiskCacheFile(Context context, String uniqueName) {
+        String cachePath = getCachePath(context);
         return new File(cachePath + File.separator + uniqueName);
     }
 
     public static File createDiskCacheDir(Context context, String dir) {
-        final String cachePath =
-                Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
-                        !Environment.isExternalStorageRemovable() ?
-                        context.getExternalCacheDir().getPath() : context.getCacheDir().getPath();
-
+        String cachePath = getCachePath(context);
         File dirFile = new File(cachePath + File.separator + dir);
         dirFile.mkdirs();
         return dirFile;

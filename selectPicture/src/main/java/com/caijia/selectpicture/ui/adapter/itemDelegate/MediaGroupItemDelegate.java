@@ -95,10 +95,10 @@ public class MediaGroupItemDelegate extends ItemViewDelegate<MediaGroup,MediaGro
                     group.setSelect(o == item);
                 }
             }
-            adapter.notifyDataSetChanged();
             if (onItemClickListener != null) {
                 onItemClickListener.onItemClick(getAdapterPosition(), item);
             }
+            adapter.notifyDataSetChanged();
         }
 
         public void setDataSource(List<?> dataSource) {

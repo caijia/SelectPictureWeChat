@@ -2,13 +2,15 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/tool_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:background="@color/color_ms_primary">
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:background="?colorPrimary">
 
         <TextView
             android:id="@+id/title_tv"
@@ -19,6 +21,20 @@
             android:text="图片"
             android:textColor="@android:color/white"
             android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_multi_select"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:text="确定"
+            android:enabled="false"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:gravity="center"
+            android:layout_marginRight="12dp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/selector_multi_select_btn_bg"
+            android:layout_gravity="right"/>
 
     </android.support.v7.widget.Toolbar>
 
@@ -41,7 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/color_ms_primary">
+        android:background="?colorPrimary">
 
         <TextView
             android:id="@+id/select_picture_group_tv"

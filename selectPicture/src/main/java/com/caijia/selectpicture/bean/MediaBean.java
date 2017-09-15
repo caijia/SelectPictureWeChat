@@ -21,6 +21,11 @@ public class MediaBean implements Parcelable ,Comparable<MediaBean> {
     public MediaBean() {
     }
 
+    public MediaBean(String path, int mediaType) {
+        this.path = path;
+        this.mediaType = mediaType;
+    }
+
     public MediaBean(int mediaType) {
         this.mediaType = mediaType;
     }

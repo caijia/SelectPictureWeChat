@@ -14,7 +14,9 @@ import com.caijia.adapterdelegate.ItemViewDelegate;
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaBean;
 import com.caijia.selectpicture.utils.ImageLoader;
+import com.caijia.selectpicture.utils.ToastManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.caijia.selectpicture.utils.MediaType.IMAGE;
@@ -30,11 +32,25 @@ public class ImageItemDelegate extends ItemViewDelegate<MediaBean, ImageItemDele
      * 是否可以多选
      */
     private boolean canMultiSelect;
+
+    /**
+     * 多选时最大选择数量
+     */
+    private int maxSelectNum;
+
     private int shadowColorNormal;
     private int shadowColorSelect;
 
-    public ImageItemDelegate(Context context,boolean canMultiSelect) {
+    private OnImageSelectedListener onImageSelectedListener;
+    private OnItemClickListener onItemClickListener;
+
+    public ImageItemDelegate(Context context, boolean canMultiSelect, int maxSelectNum,
+                             OnImageSelectedListener onImageSelectedListener,
+                             OnItemClickListener onItemClickListener) {
         this.canMultiSelect = canMultiSelect;
+        this.maxSelectNum = maxSelectNum;
+        this.onImageSelectedListener = onImageSelectedListener;
+        this.onItemClickListener = onItemClickListener;
         shadowColorNormal = ContextCompat.getColor(context, R.color.color_ms_shadow_normal);
         shadowColorSelect = ContextCompat.getColor(context, R.color.color_ms_shadow_select);
     }
@@ -43,7 +59,8 @@ public class ImageItemDelegate extends ItemViewDelegate<MediaBean, ImageItemDele
     public ImageVH onCreateViewHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_select_image, parent, false);
-        return new ImageVH(view,((RecyclerView)parent).getAdapter());
+        return new ImageVH(view,((RecyclerView)parent).getAdapter(),onImageSelectedListener,
+                onItemClickListener);
     }
 
     @Override
@@ -57,7 +74,7 @@ public class ImageItemDelegate extends ItemViewDelegate<MediaBean, ImageItemDele
         ImageLoader.getInstance().loadImage(item.getPath(),
                 holder.imageView, R.drawable.ic_sm_image_default_bg);
 
-        holder.setItem(item);
+        holder.setExtraInfo(item,dataSource,maxSelectNum);
         if (canMultiSelect) {
             holder.selectTv.setOnClickListener(holder);
         }
@@ -76,22 +93,34 @@ public class ImageItemDelegate extends ItemViewDelegate<MediaBean, ImageItemDele
     }
 
     static class ImageVH extends RecyclerView.ViewHolder implements View.OnClickListener {
-        ImageView imageView;
-        View shadowView;
-        TextView selectTv;
+        private ImageView imageView;
+        private View shadowView;
+        private TextView selectTv;
         private MediaBean item;
+        private List<?> dataSource;
+        private int maxSelectNum;
         private RecyclerView.Adapter adapter;
+        private OnImageSelectedListener onImageSelectedListener;
+        private OnItemClickListener onItemClickListener;
+        private List<MediaBean> selectedImages = new ArrayList<>();
 
-        ImageVH(View itemView, RecyclerView.Adapter adapter) {
+        ImageVH(View itemView, RecyclerView.Adapter adapter,
+                OnImageSelectedListener onImageSelectedListener,
+                OnItemClickListener onItemClickListener) {
             super(itemView);
             this.adapter = adapter;
+            this.onImageSelectedListener = onImageSelectedListener;
+            this.onItemClickListener = onItemClickListener;
+            selectedImages = new ArrayList<>();
             imageView = (ImageView) itemView.findViewById(R.id.image_view);
             shadowView = itemView.findViewById(R.id.shadow_view);
             selectTv = (TextView) itemView.findViewById(R.id.select_tv);
         }
 
-        public void setItem(MediaBean item) {
+        public void setExtraInfo(MediaBean item, List<?> dataSource, int maxSelectNum) {
             this.item = item;
+            this.dataSource = dataSource;
+            this.maxSelectNum = maxSelectNum;
         }
 
         @Override
@@ -101,13 +130,82 @@ public class ImageItemDelegate extends ItemViewDelegate<MediaBean, ImageItemDele
             }
 
             if (v == selectTv) {
-                item.setSelect(!item.isSelect());
-                adapter.notifyItemChanged(getAdapterPosition(), item);
+                if (selectIsValid()) {
+                    item.setSelect(!item.isSelect());
+                    if (onImageSelectedListener != null) {
+                        onImageSelectedListener.onImageSelected(getSelectedImages());
+                    }
+                    adapter.notifyItemChanged(getAdapterPosition(), item);
+
+                }else{
+                    ToastManager.getInstance(v.getContext()).showToast("超出最大选择数量");
+                }
+
 
             } else if (v == itemView) {
-                //preview
-
+                //多选时预览,单选时返回
+                if (onItemClickListener != null) {
+                    onItemClickListener.onItemClick(getAdapterPosition(),item,getSelectedImages());
+                }
             }
         }
+
+        /**
+         * 选择是否合法
+         * @return
+         */
+        private boolean selectIsValid(){
+            if (dataSource == null) {
+                return false;
+            }
+
+            boolean select = item.isSelect();
+            int selectedNum = 0;
+            for (Object o : dataSource) {
+                if (o != null && o instanceof MediaBean) {
+                    MediaBean bean = (MediaBean) o;
+                    if (bean.isSelect()) {
+                        selectedNum++;
+                    }
+                }
+            }
+
+            if (!select && selectedNum >= maxSelectNum) {
+                return false;
+            }
+
+            return true;
+        }
+
+        private List<MediaBean> getSelectedImages() {
+            if (dataSource == null) {
+                return selectedImages;
+            }
+            selectedImages.clear();
+            for (Object o : dataSource) {
+                if (o != null && o instanceof MediaBean) {
+                    MediaBean bean = (MediaBean) o;
+                    if (bean.isSelect()) {
+                        selectedImages.add(bean);
+                    }
+                }
+            }
+            return selectedImages;
+        }
+    }
+
+    public interface OnImageSelectedListener{
+
+        void onImageSelected(List<MediaBean> selectedItems);
+    }
+
+    public interface OnItemClickListener {
+
+        /**
+         * @param position
+         * @param item 当前点击的item
+         * @param selectedItems 多选时选中的item
+         */
+        void onItemClick(int position, MediaBean item, List<MediaBean> selectedItems);
     }
 }

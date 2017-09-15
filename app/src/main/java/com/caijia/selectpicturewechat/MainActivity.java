@@ -33,7 +33,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.local_picture_btn: {
-                Intent i = SelectMediaActivity.getIntent(this, MediaType.IMAGE);
+                Intent i = new SelectMediaActivity.IntentBuilder(this)
+                        .mediaType(MediaType.IMAGE)
+                        .canMultiSelect(false)
+                        .maxSelectNum(6)
+                        .isClipImage(true)
+                        .hasCamera(true)
+                        .build();
                 startActivityForResult(i, SELECT_MEDIA_RQ);
                 break;
             }

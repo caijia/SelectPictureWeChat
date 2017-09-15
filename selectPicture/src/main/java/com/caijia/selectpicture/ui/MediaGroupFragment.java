@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaGroup;
@@ -34,6 +35,7 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
     public OnClickShadowListener onClickShadowListener;
     private MediaGroupItemDelegate.OnItemClickListener onItemClickListener;
     private View shadowView;
+    private LinearLayout llGroupRoot;
     private OnAnimatorListener onAnimatorListener;
     private List<MediaGroup> groupList;
 
@@ -94,6 +96,7 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         shadowView = view.findViewById(R.id.shadow_view);
+        llGroupRoot = (LinearLayout) view.findViewById(R.id.ll_group_root);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         MediaGroupAdapter mAdapter = new MediaGroupAdapter(getContext(), onItemClickListener);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -114,15 +117,13 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
             @Override
             public void onGlobalLayout() {
                 int viewMeasuredHeight = view.getMeasuredHeight();
-                int maxHeight = DeviceUtil.getScreenHeight(view.getContext())
-                        - DeviceUtil.dpToPx(view.getContext(), 48 * 2) //title bar , bottom bar
-                        - DeviceUtil.getStatusBarHeight(view.getContext())// status bar
+                int maxHeight = llGroupRoot.getMeasuredHeight()
+                        - DeviceUtil.dpToPx(view.getContext(), 48) //title bar
                         - DeviceUtil.dpToPx(view.getContext(), 48); //spacing
-                if (viewMeasuredHeight > maxHeight) {
-                    view.getLayoutParams().height = maxHeight;
-
-                } else {
+                if (viewMeasuredHeight < maxHeight) {
                     view.getLayoutParams().height = viewMeasuredHeight;
+                }else{
+                    view.getLayoutParams().height = maxHeight;
                 }
                 view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
             }
