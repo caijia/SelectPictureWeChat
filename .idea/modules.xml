@@ -3,10 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/SelectPictureWeChat.iml" filepath="$PROJECT_DIR$/SelectPictureWeChat.iml" />
-      <module fileurl="file://$PROJECT_DIR$/SelectPictureWeChat.iml" filepath="$PROJECT_DIR$/SelectPictureWeChat.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/selectPicture/selectPicture.iml" filepath="$PROJECT_DIR$/selectPicture/selectPicture.iml" />
       <module fileurl="file://$PROJECT_DIR$/selectPicture/selectPicture.iml" filepath="$PROJECT_DIR$/selectPicture/selectPicture.iml" />
     </modules>
   </component>

@@ -5,6 +5,7 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 
 /**
@@ -44,7 +45,9 @@ public class ImageLoader {
                         .priority(Priority.HIGH)
                         .error(defaultResId)
                         .placeholder(defaultResId)
-                        .override(width, height))
+                        .fallback(defaultResId)
+                        .override(width, height)
+                        .dontAnimate())
                 .into(imageView);
     }
 
@@ -56,7 +59,30 @@ public class ImageLoader {
                         .centerCrop()
                         .priority(Priority.HIGH)
                         .error(defaultResId)
-                        .placeholder(defaultResId))
+                        .placeholder(defaultResId)
+                        .fallback(defaultResId)
+                        .dontAnimate())
+                .into(imageView);
+    }
+
+    public void loadImage(String url, ImageView imageView,boolean useCache,@DrawableRes int defaultResId) {
+        RequestOptions requestOptions = new RequestOptions()
+                .centerCrop()
+                .priority(Priority.HIGH)
+                .error(defaultResId)
+                .placeholder(defaultResId)
+                .fallback(defaultResId)
+                .dontAnimate();
+
+        if (!useCache) {
+            requestOptions.diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true);
+        }
+
+        Glide.with(imageView.getContext())
+                .asBitmap()
+                .load(url)
+                .apply(requestOptions)
                 .into(imageView);
     }
 }

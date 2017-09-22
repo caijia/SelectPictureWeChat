@@ -1,5 +1,6 @@
 package com.caijia.selectpicture.ui;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
@@ -10,7 +11,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
@@ -18,7 +18,7 @@ import android.widget.LinearLayout;
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaGroup;
 import com.caijia.selectpicture.ui.adapter.MediaGroupAdapter;
-import com.caijia.selectpicture.ui.adapter.itemDelegate.MediaGroupItemDelegate;
+import com.caijia.selectpicture.ui.itemDelegate.MediaGroupItemDelegate;
 import com.caijia.selectpicture.utils.DeviceUtil;
 import com.caijia.selectpicture.widget.LineItemDecoration;
 
@@ -63,25 +63,9 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
     @Override
     public Animation onCreateAnimation(int transit, final boolean enter, int nextAnim) {
         Animation animation = AnimationUtils.loadAnimation(getContext(), nextAnim);
-        animation.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                if (onAnimatorListener != null) {
-                    onAnimatorListener.onAnimatorStart(enter);
-                }
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                if (onAnimatorListener != null) {
-                    onAnimatorListener.onAnimatorEnd(enter);
-                }
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-        });
+        if (onAnimatorListener != null && animation != null) {
+            onAnimatorListener.onFragmentCreateAnimation(animation, enter);
+        }
         return animation;
     }
 
@@ -113,19 +97,24 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
     }
 
     private void setRecyclerViewHeight(final RecyclerView view) {
-        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        view.post(new Runnable() {
             @Override
-            public void onGlobalLayout() {
+            public void run() {
                 int viewMeasuredHeight = view.getMeasuredHeight();
                 int maxHeight = llGroupRoot.getMeasuredHeight()
                         - DeviceUtil.dpToPx(view.getContext(), 48) //title bar
                         - DeviceUtil.dpToPx(view.getContext(), 48); //spacing
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    maxHeight = maxHeight - DeviceUtil.getStatusBarHeight(getContext()); //status bar
+                }
+
                 if (viewMeasuredHeight < maxHeight) {
                     view.getLayoutParams().height = viewMeasuredHeight;
-                }else{
+                } else {
                     view.getLayoutParams().height = maxHeight;
                 }
-                view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                view.requestLayout();
             }
         });
     }
@@ -149,9 +138,7 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
 
     public interface OnAnimatorListener {
 
-        void onAnimatorEnd(boolean enter);
-
-        void onAnimatorStart(boolean enter);
+        void onFragmentCreateAnimation(Animation animation , boolean enter);
     }
 
     public interface OnClickShadowListener {

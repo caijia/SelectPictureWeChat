@@ -57,8 +57,23 @@ public class MediaGroup implements Parcelable {
         return null;
     }
 
+    /**
+     * 数据中是否有照相这个item
+     * @return
+     */
+    private boolean hasCameraItem() {
+        if (mediaList == null || mediaList.isEmpty()) {
+            return false;
+        }
+
+        MediaBean firstBean = mediaList.get(0);
+        return firstBean.getMediaType() == MediaType.CAMERA;
+    }
+
     public int getSize() {
-        return mediaList != null ? mediaList.size() : 0;
+        return mediaList != null
+                ? (hasCameraItem() ? mediaList.size() - 1 : mediaList.size())
+                : 0;
     }
 
     public String getGroupName() {

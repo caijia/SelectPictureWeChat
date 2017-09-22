@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/tool_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        android:background="?colorPrimary">
+        android:background="?colorPrimary"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <TextView
             android:id="@+id/title_tv"
@@ -26,15 +26,15 @@
             android:id="@+id/tv_multi_select"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:text="确定"
+            android:layout_gravity="right"
+            android:layout_marginRight="12dp"
+            android:background="@drawable/selector_multi_select_btn_bg"
             android:enabled="false"
+            android:gravity="center"
             android:paddingLeft="12dp"
             android:paddingRight="12dp"
-            android:gravity="center"
-            android:layout_marginRight="12dp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/selector_multi_select_btn_bg"
-            android:layout_gravity="right"/>
+            android:text="确定"
+            android:textColor="@android:color/white" />
 
     </android.support.v7.widget.Toolbar>
 
@@ -42,15 +42,16 @@
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="vertical"
         android:layout_above="@+id/bottom_bar_ll"
-        android:layout_below="@+id/tool_bar" />
+        android:layout_below="@+id/tool_bar"
+        android:overScrollMode="never"
+        android:scrollbars="vertical" />
 
     <FrameLayout
         android:id="@+id/picture_group_fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/bottom_bar_ll"/>
+        android:layout_above="@+id/bottom_bar_ll" />
 
     <LinearLayout
         android:id="@+id/bottom_bar_ll"
@@ -59,17 +60,34 @@
         android:layout_alignParentBottom="true"
         android:background="?colorPrimary">
 
-        <TextView
-            android:id="@+id/select_picture_group_tv"
+        <RelativeLayout
+            android:id="@+id/select_picture_group_rl"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:gravity="center"
+            android:layout_height="match_parent"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
-            android:text="图片和视频"
-            android:background="?selectableItemBackground"
-            android:textColor="@android:color/white"
-            android:textSize="16sp" />
+            android:background="?selectableItemBackground">
+
+            <TextView
+                android:id="@+id/select_picture_group_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="图片和视频"
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/select_picture_group_tv"
+                android:layout_toRightOf="@+id/select_picture_group_tv"
+                android:layout_marginBottom="3dp"
+                android:layout_marginLeft="1dp"
+                android:src="@drawable/ic_sm_triangle" />
+
+        </RelativeLayout>
+
 
     </LinearLayout>
 </RelativeLayout>

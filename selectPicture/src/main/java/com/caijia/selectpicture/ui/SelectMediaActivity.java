@@ -1,38 +1,47 @@
 package com.caijia.selectpicture.ui;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.animation.Animation;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaBean;
 import com.caijia.selectpicture.bean.MediaGroup;
 import com.caijia.selectpicture.ui.adapter.MediaAdapter;
-import com.caijia.selectpicture.ui.adapter.itemDelegate.ImageItemDelegate;
-import com.caijia.selectpicture.ui.adapter.itemDelegate.MediaGroupItemDelegate;
-import com.caijia.selectpicture.ui.adapter.itemDelegate.TakePictureItemDelegate;
+import com.caijia.selectpicture.ui.itemDelegate.MediaGroupItemDelegate;
+import com.caijia.selectpicture.ui.itemDelegate.TakePictureItemDelegate;
 import com.caijia.selectpicture.utils.CameraHelper;
 import com.caijia.selectpicture.utils.DeviceUtil;
 import com.caijia.selectpicture.utils.FileUtil;
 import com.caijia.selectpicture.utils.MediaManager;
 import com.caijia.selectpicture.utils.MediaType;
+import com.caijia.selectpicture.utils.StatusBarUtil;
 import com.caijia.selectpicture.widget.GridSpacingItemDecoration;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.text.MessageFormat;
@@ -40,6 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.caijia.selectpicture.utils.Constants.IMAGE_SAVE_DIR;
 import static com.caijia.selectpicture.utils.MediaType.IMAGE;
 import static com.caijia.selectpicture.utils.MediaType.IMAGE_VIDEO;
 import static com.caijia.selectpicture.utils.MediaType.VIDEO;
@@ -52,7 +62,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
         MediaManager.OnGetLocalMediaListener, View.OnClickListener,
         MediaGroupFragment.OnAnimatorListener, MediaGroupItemDelegate.OnItemClickListener,
         MediaGroupFragment.OnClickShadowListener, MediaAdapter.OnItemClickListener,
-        TakePictureItemDelegate.OnTakePictureListener, ImageItemDelegate.OnImageSelectedListener {
+        TakePictureItemDelegate.OnTakePictureListener, MediaAdapter.OnItemSelectedListener {
 
     public static final String RESULT_MEDIA = "result:media";
     public static final String RESULT_MULTI_MEDIA = "result:multi_media";
@@ -61,7 +71,6 @@ public class SelectMediaActivity extends AppCompatActivity implements
     private static final String PARAMS_MEDIA_TYPE = "params:media_type";
     private static final String PARAMS_MULTI_SELECT = "params:can_multi_select";
     private static final String PARAMS_HAS_CAMERA = "params:has_camera";
-    private static final String PARAMS_CLIP_IMAGE = "params:is_clip_image";
     private static final String PARAMS_MAX_SELECT_NUM = "params:max_select_num";
 
     /**
@@ -73,11 +82,6 @@ public class SelectMediaActivity extends AppCompatActivity implements
      * 是否可以多选
      */
     private boolean canMultiSelect;
-
-    /**
-     * 是否需要裁剪
-     */
-    private boolean isClipImage;
 
     /**
      * 多选时最大选择数量
@@ -92,8 +96,10 @@ public class SelectMediaActivity extends AppCompatActivity implements
     private MediaAdapter mMediaAdapter;
     private TextView titleTv;
     private TextView selectPictureGroupTv;
+    private RelativeLayout selectPictureGroupRl;
     private FrameLayout pictureGroupContainer;
     private TextView tvMultiSelect;
+    private LinearLayout bottomBarLl;
 
     private List<MediaGroup> groupList;
     private MediaGroupFragment groupFragment;
@@ -102,11 +108,12 @@ public class SelectMediaActivity extends AppCompatActivity implements
      * 选中的Items
      */
     private List<MediaBean> selectedItems;
+    private ValueAnimator shadowAlphaAnimator;
 
     @Override
     public void onTakePicture() {
         String fileName = String.format("%s.jpg", UUID.randomUUID().toString().replaceAll("-", ""));
-        takePictureSaveFile = FileUtil.createDiskCacheFile(this, "takePicture", fileName);
+        takePictureSaveFile = FileUtil.createPictureDiskFile(IMAGE_SAVE_DIR, fileName);
         if (takePictureSaveFile == null) {
             return;
         }
@@ -117,21 +124,6 @@ public class SelectMediaActivity extends AppCompatActivity implements
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_media);
-        Intent intent = getIntent();
-        if (intent != null && intent.getExtras() != null) {
-            mediaType = intent.getExtras().getInt(PARAMS_MEDIA_TYPE);
-            canMultiSelect = intent.getExtras().getBoolean(PARAMS_MULTI_SELECT);
-            isClipImage = intent.getExtras().getBoolean(PARAMS_CLIP_IMAGE);
-            maxSelectNum = intent.getExtras().getInt(PARAMS_MAX_SELECT_NUM);
-            hasCamera = intent.getExtras().getBoolean(PARAMS_HAS_CAMERA);
-        }
-
-        tvMultiSelect = (TextView) findViewById(R.id.tv_multi_select);
-        tvMultiSelect.setVisibility(canMultiSelect ? View.VISIBLE : View.GONE);
-        selectPictureGroupTv = (TextView) findViewById(R.id.select_picture_group_tv);
-        pictureGroupContainer = (FrameLayout) findViewById(R.id.picture_group_fragment_container);
-
-        titleTv = (TextView) findViewById(R.id.title_tv);
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -146,28 +138,70 @@ public class SelectMediaActivity extends AppCompatActivity implements
             }
         });
 
+        int statusBarColor = ContextCompat.getColor(this, R.color.color_ms_primary_dark);
+        StatusBarUtil.setTranslucentStatus(this);
+        StatusBarUtil.setStatusBarPlaceColor(this, false, statusBarColor);
+        StatusBarUtil.addStatusBarHeightMarginTop(toolbar);
+
+        Intent intent = getIntent();
+        if (intent != null && intent.getExtras() != null) {
+            mediaType = intent.getExtras().getInt(PARAMS_MEDIA_TYPE);
+            canMultiSelect = intent.getExtras().getBoolean(PARAMS_MULTI_SELECT);
+            maxSelectNum = intent.getExtras().getInt(PARAMS_MAX_SELECT_NUM);
+            hasCamera = intent.getExtras().getBoolean(PARAMS_HAS_CAMERA);
+        }
+
+        tvMultiSelect = (TextView) findViewById(R.id.tv_multi_select);
+        tvMultiSelect.setVisibility(canMultiSelect ? View.VISIBLE : View.GONE);
+        selectPictureGroupTv = (TextView) findViewById(R.id.select_picture_group_tv);
+        selectPictureGroupRl = (RelativeLayout) findViewById(R.id.select_picture_group_rl);
+        pictureGroupContainer = (FrameLayout) findViewById(R.id.picture_group_fragment_container);
+        titleTv = (TextView) findViewById(R.id.title_tv);
+        bottomBarLl = (LinearLayout) findViewById(R.id.bottom_bar_ll);
+
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        mMediaAdapter = new MediaAdapter(this, canMultiSelect, maxSelectNum, this, this);
+        mMediaAdapter = new MediaAdapter(this, canMultiSelect, maxSelectNum, this);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         int spacing = DeviceUtil.dpToPx(this, 2);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(spacing, true, Color.TRANSPARENT));
         recyclerView.setAdapter(mMediaAdapter);
         mMediaAdapter.setOnItemClickListener(this);
+        mMediaAdapter.setOnItemSelectedListener(this);
 
         loadMedia();
-        selectPictureGroupTv.setOnClickListener(this);
+        selectPictureGroupRl.setOnClickListener(this);
         tvMultiSelect.setOnClickListener(this);
     }
 
     private void loadMedia() {
+        String title = "";
+        switch (mediaType) {
+            case IMAGE: {
+                title = getResources().getString(R.string.sm_all_image);
+                break;
+            }
+
+            case VIDEO: {
+                title = getResources().getString(R.string.sm_all_video);
+                break;
+            }
+
+            case IMAGE_VIDEO: {
+                title = getResources().getString(R.string.sm_all_image_video);
+                break;
+            }
+        }
+        titleTv.setText(title);
+        selectPictureGroupTv.setText(title);
         MediaManager.getInstance().getLocalMedia(this, mediaType, this);
     }
 
     @Override
-    public void onGetMediaFinish(List<MediaBean> list, List<MediaGroup> groupList) {
+    public void onGetMediaFinish(@NonNull List<MediaBean> list, @NonNull List<MediaGroup> groupList) {
+        bottomBarLl.setVisibility(list.isEmpty() ? View.GONE : View.VISIBLE);
         if (hasCamera) {
             //第一项为照相图标
-            if (groupList != null && !groupList.isEmpty()) {
+            if (!groupList.isEmpty()) {
                 MediaGroup mediaGroup = groupList.get(0);
                 MediaBean mediaBean = mediaGroup.getFirst();
                 if (mediaBean != null && mediaBean.getMediaType() != MediaType.CAMERA) {
@@ -178,12 +212,13 @@ public class SelectMediaActivity extends AppCompatActivity implements
         }
 
         this.groupList = groupList;
+        mMediaAdapter.setSourceData(list);
         mMediaAdapter.updateItems(list);
     }
 
     @Override
     public void onClick(View v) {
-        if (v == selectPictureGroupTv) {
+        if (v == selectPictureGroupRl) {
             toggleFragment();
 
         } else if (v == tvMultiSelect) {
@@ -211,7 +246,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
 
         } else {
             setGroupFragmentListener();
-            if (groupFragment.isVisible() && !groupFragment.isRemoving()) {
+            if (isShowDialog) {
                 FragmentTransaction transaction = getTransaction();
                 transaction.hide(groupFragment).commitNowAllowingStateLoss();
                 isShowDialog = false;
@@ -239,19 +274,50 @@ public class SelectMediaActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onAnimatorEnd(boolean enter) {
-        if (!enter) {
-            pictureGroupContainer.setBackgroundColor(Color.TRANSPARENT);
+    public void onFragmentCreateAnimation(Animation animation, final boolean enter) {
+        long duration = animation.getDuration();
+        if (shadowAlphaAnimator != null) {
+            shadowAlphaAnimator.cancel();
         }
+        shadowAlphaAnimator = ValueAnimator.ofFloat(enter ? 0 : 1, enter ? 1 : 0);
+        shadowAlphaAnimator.setDuration(duration);
+        shadowAlphaAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float alpha = (float) animation.getAnimatedValue();
+                pictureGroupContainer.setAlpha(alpha);
+            }
+        });
+        shadowAlphaAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                pictureGroupContainer.setBackgroundColor(Color.parseColor("#66000000"));
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                pictureGroupContainer.setAlpha(enter ? 1 : 0);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        shadowAlphaAnimator.start();
     }
 
-    @Override
-    public void onAnimatorStart(boolean enter) {
-        if (enter) {
-            pictureGroupContainer.setBackgroundColor(Color.parseColor("#66000000"));
-        }
-    }
-
+    /**
+     * 点击图片组item
+     *
+     * @param position
+     * @param group
+     */
     @Override
     public void onItemClick(int position, MediaGroup group) {
         toggleFragment();
@@ -262,7 +328,9 @@ public class SelectMediaActivity extends AppCompatActivity implements
 
     @Override
     public void onClickShadow(View view) {
-        toggleFragment();
+        if (isShowDialog) {
+            toggleFragment();
+        }
     }
 
     @Override
@@ -286,27 +354,26 @@ public class SelectMediaActivity extends AppCompatActivity implements
                 if (takePictureSaveFile == null) {
                     return;
                 }
-                Uri contentUri = Uri.fromFile(takePictureSaveFile);
-                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, contentUri);
-                sendBroadcast(mediaScanIntent);
 
-                if (!isClipImage) {
-                    //照相完成,不动态更新相册
-                    sendMediaBean(new MediaBean(takePictureSaveFile.getPath(), MediaType.IMAGE));
-                    finish();
+                String fileName = takePictureSaveFile.getName();
+                String filePath = takePictureSaveFile.getAbsolutePath();
+                try {
+                    MediaStore.Images.Media.insertImage(getContentResolver(), filePath, fileName, "");
+                    Uri contentUri = Uri.fromFile(takePictureSaveFile);
+                    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                    mediaScanIntent.setData(contentUri);
+                    sendBroadcast(mediaScanIntent);
 
-                }else{
-                    //裁剪
-                    clipImage(takePictureSaveFile.getPath());
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 }
+
+                //照相完成,不动态更新相册
+                sendMediaBean(new MediaBean(takePictureSaveFile.getPath(), MediaType.IMAGE));
+                finish();
                 break;
             }
         }
-    }
-
-    private void clipImage(String imagePath) {
-        Intent i = ClipPictureActivity.getIntent(this, imagePath);
-        startActivity(i);
     }
 
     private void sendMediaBean(MediaBean item) {
@@ -315,22 +382,28 @@ public class SelectMediaActivity extends AppCompatActivity implements
         setResult(RESULT_OK, i);
     }
 
+    /**
+     * 点击图片item
+     *
+     * @param position
+     * @param item          当前点击的item
+     * @param selectedItems 多选时选中的item,不是多选时返回为null
+     */
     @Override
-    public void onItemClick(int position, MediaBean item,List<MediaBean> selectedItems) {
-        if (!isClipImage || item.getMediaType() != MediaType.IMAGE) {
+    public void onItemClick(int position, MediaBean item, List<MediaBean> selectedItems) {
+        if (!canMultiSelect) {
             sendMediaBean(item);
             finish();
-
-        }
-
-        if (isClipImage && item.getMediaType() == MediaType.IMAGE) {
-            //裁剪
-            clipImage(item.getPath());
         }
     }
 
+    /**
+     * 多选选中回调
+     *
+     * @param selectedItems 选中items
+     */
     @Override
-    public void onImageSelected(List<MediaBean> selectedItems) {
+    public void onItemSelected(List<MediaBean> selectedItems) {
         this.selectedItems = selectedItems;
         int size = selectedItems.size();
         tvMultiSelect.setText(size > 0
@@ -365,11 +438,6 @@ public class SelectMediaActivity extends AppCompatActivity implements
 
         public IntentBuilder hasCamera(boolean hasCamera) {
             i.putExtra(PARAMS_HAS_CAMERA, hasCamera);
-            return this;
-        }
-
-        public IntentBuilder isClipImage(boolean isClipImage) {
-            i.putExtra(PARAMS_CLIP_IMAGE, isClipImage);
             return this;
         }
 

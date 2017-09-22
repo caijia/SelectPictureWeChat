@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
-import android.util.Log;
+import android.support.annotation.NonNull;
 
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaBean;
@@ -132,23 +132,29 @@ public class MediaManager {
         }.execute();
     }
 
+    /**
+     * 查询所有图片(去除gif)
+     * //"image/png","image/jpeg","image/jpg"
+     * @param context
+     * @return
+     */
     private List<MediaBean> queryImage(Context context) {
-        long start = System.currentTimeMillis();
         List<MediaBean> list = new ArrayList<>();
 
         String selection;
         String[] selectionArgs;
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-            selection = String.format("%s>? and %s>? and %s>?",
+            selection = String.format("%s>? and %s>? and %s>? and %s!=?",
                     MediaStore.Images.Media.SIZE,
                     MediaStore.Images.Media.WIDTH,
-                    MediaStore.Images.Media.HEIGHT);
-            selectionArgs = new String[]{"0", "0", "0"};
+                    MediaStore.Images.Media.HEIGHT,
+                    MediaStore.Images.Media.MIME_TYPE);
+            selectionArgs = new String[]{"0", "0", "0","image/gif"};
 
         } else {
-            selection = String.format("%s>?",
-                    MediaStore.Images.Media.SIZE);
-            selectionArgs = new String[]{"0"};
+            selection = String.format("%s>? and %s!=?",
+                    MediaStore.Images.Media.SIZE,MediaStore.Images.Media.MIME_TYPE);
+            selectionArgs = new String[]{"0","image/gif"};
         }
 
         Cursor cursor = context.getContentResolver().query(
@@ -178,13 +184,10 @@ public class MediaManager {
             cursor.close();
         }
 
-        long end = System.currentTimeMillis();
-        Log.v("time_image", String.valueOf(end - start));
         return list;
     }
 
     private List<MediaBean> queryVideo(Context context) {
-        long start = System.currentTimeMillis();
         List<MediaBean> list = new ArrayList<>();
 
         String selection = String.format("%s>? and %s>?",
@@ -212,8 +215,6 @@ public class MediaManager {
             cursor.close();
         }
 
-        long end = System.currentTimeMillis();
-        Log.v("time_video", String.valueOf(end - start));
         return list;
     }
 
@@ -228,18 +229,6 @@ public class MediaManager {
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(imagePath, options);
         return options.outHeight <= 0 || options.outWidth <= 0;
-    }
-
-    private List<MediaBean> filterMedia(List<MediaBean> list, int type) {
-        List<MediaBean> newList = new ArrayList<>();
-        if (list != null && !list.isEmpty()) {
-            for (MediaBean mediaBean : list) {
-                if (mediaBean.getMediaType() == type) {
-                    newList.add(mediaBean);
-                }
-            }
-        }
-        return newList;
     }
 
     private List<MediaGroup> toMediaGroup(int mediaType,List<MediaBean> pathList) {
@@ -279,6 +268,6 @@ public class MediaManager {
          * @param list      手机里面的图片和视频
          * @param groupList 手机里面的图片和视频分组
          */
-        void onGetMediaFinish(List<MediaBean> list, List<MediaGroup> groupList);
+        void onGetMediaFinish(@NonNull List<MediaBean> list, @NonNull List<MediaGroup> groupList);
     }
 }

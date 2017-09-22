@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.caijia.adapterdelegate.LoadMoreDelegationAdapter;
-import com.caijia.selectpicture.ui.adapter.itemDelegate.MediaGroupItemDelegate;
+import com.caijia.selectpicture.ui.itemDelegate.MediaGroupItemDelegate;
 
 /**
  * Created by cai.jia on 2017/6/22 0022

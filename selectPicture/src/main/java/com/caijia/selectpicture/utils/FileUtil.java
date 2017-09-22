@@ -2,8 +2,11 @@ package com.caijia.selectpicture.utils;
 
 import android.content.Context;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 
 import java.io.File;
+
+import static android.os.Environment.DIRECTORY_PICTURES;
 
 
 /**
@@ -19,6 +22,23 @@ public class FileUtil {
     public static File createDiskCacheFile(Context context,String dir, String fileName) {
         File diskCacheDir = createDiskCacheDir(context, dir);
         return new File(diskCacheDir, fileName);
+    }
+
+    public static @Nullable File createPictureDiskFile(String dir, String fileName) {
+        if (isMountSdCard()) {
+            File dirFile;
+            try {
+                dirFile = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES), dir);
+                dirFile.mkdirs();
+
+            } catch (Exception e) {
+                dirFile = new File(Environment.getExternalStorageDirectory(), dir);
+                dirFile.mkdirs();
+
+            }
+            return new File(dirFile, fileName);
+        }
+        return null;
     }
 
     private static String getCachePath(Context context) {

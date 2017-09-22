@@ -2,27 +2,50 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
-    <RelativeLayout
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/tool_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:background="@color/colorPrimary">
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:background="?colorPrimary">
 
         <TextView
-            android:id="@+id/clip"
+            android:id="@+id/title_tv"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:maxLines="1"
+            android:text="裁剪"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/clip_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:text="使用"
             android:paddingLeft="12dp"
             android:paddingRight="12dp"
-            android:background="?selectableItemBackground"
-            android:layout_alignParentRight="true"
+            android:gravity="center"
             android:onClick="clipImage"
+            android:layout_marginRight="12dp"
             android:textColor="@android:color/white"
-            android:text="裁剪"/>
+            android:background="@drawable/selector_multi_select_btn_bg"
+            android:layout_gravity="right"/>
 
-    </RelativeLayout>
+        <ProgressBar
+            android:id="@+id/pbar_clip"
+            style="@style/Progress_circle"
+            android:layout_gravity="right"
+            android:layout_marginRight="8dp"
+            android:visibility="gone"
+            android:layout_width="20dp"
+            android:layout_height="20dp" />
+
+    </android.support.v7.widget.Toolbar>
 
     <com.caijia.selectpicture.widget.ClipImageView
         android:id="@+id/clip_image_view"

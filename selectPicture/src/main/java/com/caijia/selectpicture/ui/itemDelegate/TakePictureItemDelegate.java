@@ -1,4 +1,4 @@
-package com.caijia.selectpicture.ui.adapter.itemDelegate;
+package com.caijia.selectpicture.ui.itemDelegate;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;

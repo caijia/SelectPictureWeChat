@@ -98,6 +98,10 @@ public class ClipImageView extends AppCompatImageView implements
                 getResources().getDisplayMetrics()));
     }
 
+    public void setClipBorderAspect(float clipBorderAspect) {
+        this.clipBorderAspect = clipBorderAspect;
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -108,6 +112,10 @@ public class ClipImageView extends AppCompatImageView implements
         int clipBorderHeight = (int) (clipBorder.width() / clipBorderAspect);
         clipBorder.top = (height - clipBorderHeight) / 2;
         clipBorder.bottom = clipBorder.top + clipBorderHeight;
+
+        if (listener != null) {
+            listener.onClipBorderSizeChanged(clipBorder.width(), clipBorder.height());
+        }
     }
 
     @Override
@@ -267,18 +275,18 @@ public class ClipImageView extends AppCompatImageView implements
         final float[] matrixValues = new float[9];
         imageMatrix.getValues(matrixValues);
         final float scale = matrixValues[Matrix.MSCALE_X] * drawable.getIntrinsicWidth() / originalBitmap.getWidth();
-        final float transX = matrixValues[Matrix.MTRANS_X];
-        final float transY = matrixValues[Matrix.MTRANS_Y];
+        final float transX = (int) matrixValues[Matrix.MTRANS_X];
+        final float transY = (int) matrixValues[Matrix.MTRANS_Y];
 
-        final float cropX = (-transX + clipBorder.left) / scale;
-        final float cropY = (-transY + clipBorder.top) / scale;
-        final float cropWidth = clipBorder.width() / scale;
-        final float cropHeight = clipBorder.height() / scale;
-        if (cropX < 0 || cropY < 0) {
+        final int cropX = (int) ((-transX + clipBorder.left) / scale);
+        final int cropY = (int) ((-transY + clipBorder.top) / scale);
+        final int cropWidth = (int) (clipBorder.width() / scale);
+        final int cropHeight = (int) (clipBorder.height() / scale);
+        if (cropX < 0 || cropY < 0 || cropX + cropWidth > originalBitmap.getWidth()
+                || cropY + cropHeight > originalBitmap.getHeight()) {
             return null;
         }
-        return Bitmap.createBitmap(originalBitmap,
-                (int) cropX, (int) cropY, (int) cropWidth, (int) cropHeight);
+        return Bitmap.createBitmap(originalBitmap, cropX, cropY, cropWidth,cropHeight);
     }
 
     private RectF getDrawableBounds(Matrix matrix) {
@@ -489,5 +497,26 @@ public class ClipImageView extends AppCompatImageView implements
         //如果返回false,将不会收到双击事件,点击事件发生在图片显示区域,则开启双击事件检测
         RectF bounds = getDrawableBounds(imageMatrix);
         return bounds.contains(event.getX(), event.getY());
+    }
+
+    public float[] getClipMatrixValues() {
+        final float[] matrixValues = new float[9];
+        imageMatrix.getValues(matrixValues);
+        return matrixValues;
+    }
+
+    public Rect getClipBorder() {
+        return clipBorder;
+    }
+
+    public interface OnClipBorderSizeChangedListener{
+
+        void onClipBorderSizeChanged(int clipBorderWidth, int clipBorderHeight);
+    }
+
+    private OnClipBorderSizeChangedListener listener;
+
+    public void setOnClipBorderSizeChangedListener(OnClipBorderSizeChangedListener listener) {
+        this.listener = listener;
     }
 }
