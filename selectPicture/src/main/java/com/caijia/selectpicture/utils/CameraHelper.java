@@ -68,22 +68,24 @@ public class CameraHelper {
         return filePath;
     }
 
-    public void takePicture(@NonNull Activity activity, int requestCode) {
+    public File takePicture(@NonNull Activity activity, int requestCode) {
         String fileName = String.format("%s.jpg", UUID.randomUUID().toString().replaceAll("-", ""));
         File takePictureSaveFile = FileUtil.createPictureDiskFile(IMAGE_SAVE_DIR, fileName);
         if (takePictureSaveFile == null) {
-            return;
+            return null;
         }
         takePicture(activity, takePictureSaveFile.getAbsolutePath(), requestCode);
+        return takePictureSaveFile;
     }
 
-    public void takePicture(@NonNull Fragment fragment, int requestCode) {
+    public File takePicture(@NonNull Fragment fragment, int requestCode) {
         String fileName = String.format("%s.jpg", UUID.randomUUID().toString().replaceAll("-", ""));
         File takePictureSaveFile = FileUtil.createPictureDiskFile(IMAGE_SAVE_DIR, fileName);
         if (takePictureSaveFile == null) {
-            return;
+            return null;
         }
         takePicture(fragment, takePictureSaveFile.getAbsolutePath(), requestCode);
+        return takePictureSaveFile;
     }
 
     public void takePicture(@NonNull Activity activity, String filePath, int requestCode) {
