@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">SelectPicture</string>
+    <string name="record_retry">Retry</string>
+    <string name="record_confirm">Use</string>
+    <string name="sm_all_image">All Images</string>
+    <string name="sm_all_video">All Videos</string>
+    <string name="sm_all_image_video">Images &amp; Videos</string>
+    <string name="select_pic_positive_multi">OK({0}/{1})</string>
+    <string name="select_pic_positive">OK</string>
+    <string name="select_pic_images_number">%d</string>
+    <string name="select_pic_take_picture">Take Photo</string>
+    <string name="select_pic_clip">Clip Image</string>
+</resources>

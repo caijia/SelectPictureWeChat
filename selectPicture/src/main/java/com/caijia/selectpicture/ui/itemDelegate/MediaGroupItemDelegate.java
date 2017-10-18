@@ -1,5 +1,6 @@
 package com.caijia.selectpicture.ui.itemDelegate;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -23,7 +24,14 @@ import java.util.List;
  */
 public class MediaGroupItemDelegate extends ItemViewDelegate<MediaGroup,MediaGroupItemDelegate.MediaGroupVH> {
 
-    public MediaGroupItemDelegate(@Nullable OnItemClickListener onItemClickListener) {
+    private Context context;
+
+    public MediaGroupItemDelegate(Context context) {
+        this.context = context;
+    }
+
+    public MediaGroupItemDelegate(Context context,@Nullable OnItemClickListener onItemClickListener) {
+        this.context = context;
         this.onItemClickListener = onItemClickListener;
     }
 
@@ -41,7 +49,7 @@ public class MediaGroupItemDelegate extends ItemViewDelegate<MediaGroup,MediaGro
         ImageLoader.getInstance().loadImage(imagePath,
                 holder.imageView, R.drawable.ic_sm_image_default_bg);
         holder.groupNameTv.setText(item.getGroupName());
-        holder.pictureCountTv.setText(String.format("%d张", item.getSize()));
+        holder.pictureCountTv.setText(String.format(context.getString(R.string.select_pic_images_number), item.getSize()));
         holder.videoBgIv.setVisibility(
                 item.getMediaType() == MediaType.VIDEO ? View.VISIBLE : View.GONE);
         holder.selectTv.setSelected(item.isSelect());

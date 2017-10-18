@@ -234,6 +234,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
         if (groupFragment == null) {
             groupFragment = (MediaGroupFragment) getSupportFragmentManager()
                     .findFragmentByTag(TAG_PICTURE_GROUP);
+            System.out.println(11);
         }
         if (groupFragment == null || !groupFragment.isAdded()) {
             groupFragment = MediaGroupFragment.getInstance(groupList);
@@ -243,6 +244,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
                     .add(R.id.picture_group_fragment_container, groupFragment, TAG_PICTURE_GROUP)
                     .commitNowAllowingStateLoss();
             isShowDialog = true;
+            System.out.println(22);
 
         } else {
             setGroupFragmentListener();
@@ -250,11 +252,13 @@ public class SelectMediaActivity extends AppCompatActivity implements
                 FragmentTransaction transaction = getTransaction();
                 transaction.hide(groupFragment).commitNowAllowingStateLoss();
                 isShowDialog = false;
+                System.out.println(33);
 
             } else {
                 FragmentTransaction transaction = getTransaction();
                 transaction.show(groupFragment).commitNowAllowingStateLoss();
                 isShowDialog = true;
+                System.out.println(44);
             }
         }
     }
@@ -407,8 +411,8 @@ public class SelectMediaActivity extends AppCompatActivity implements
         this.selectedItems = selectedItems;
         int size = selectedItems.size();
         tvMultiSelect.setText(size > 0
-                ? MessageFormat.format("确定({0}/{1})", size, maxSelectNum)
-                : "确定");
+                ? MessageFormat.format(getString(R.string.select_pic_positive_multi), size, maxSelectNum)
+                : getString(R.string.select_pic_positive));
         tvMultiSelect.setEnabled(size > 0);
     }
 

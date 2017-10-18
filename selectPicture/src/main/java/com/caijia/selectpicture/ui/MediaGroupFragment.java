@@ -62,11 +62,16 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
 
     @Override
     public Animation onCreateAnimation(int transit, final boolean enter, int nextAnim) {
-        Animation animation = AnimationUtils.loadAnimation(getContext(), nextAnim);
-        if (onAnimatorListener != null && animation != null) {
-            onAnimatorListener.onFragmentCreateAnimation(animation, enter);
+        if (nextAnim > 0) {
+            Animation animation = AnimationUtils.loadAnimation(getContext(), nextAnim);
+            if (onAnimatorListener != null && animation != null) {
+                onAnimatorListener.onFragmentCreateAnimation(animation, enter);
+            }
+            return animation;
+
+        }else{
+            return null;
         }
-        return animation;
     }
 
     @Nullable
@@ -90,33 +95,51 @@ public class MediaGroupFragment extends Fragment implements View.OnClickListener
         recyclerView.setAdapter(mAdapter);
 
         if (groupList != null) {
-            setRecyclerViewHeight(recyclerView);
             mAdapter.updateItems(groupList);
+            setRecyclerViewHeight(recyclerView,savedInstanceState);
         }
         shadowView.setOnClickListener(this);
     }
 
-    private void setRecyclerViewHeight(final RecyclerView view) {
-        view.post(new Runnable() {
-            @Override
-            public void run() {
-                int viewMeasuredHeight = view.getMeasuredHeight();
-                int maxHeight = llGroupRoot.getMeasuredHeight()
-                        - DeviceUtil.dpToPx(view.getContext(), 48) //title bar
-                        - DeviceUtil.dpToPx(view.getContext(), 48); //spacing
+    private int recyclerViewHeight;
+    private static final String RECYCLER_VIEW_MAX_HEIGHT = "params:recyclerViewHeight";
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    maxHeight = maxHeight - DeviceUtil.getStatusBarHeight(getContext()); //status bar
-                }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(RECYCLER_VIEW_MAX_HEIGHT,recyclerViewHeight);
+    }
 
-                if (viewMeasuredHeight < maxHeight) {
-                    view.getLayoutParams().height = viewMeasuredHeight;
-                } else {
-                    view.getLayoutParams().height = maxHeight;
+    private void setRecyclerViewHeight(final RecyclerView view, Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            int recyclerViewHeight = savedInstanceState.getInt(RECYCLER_VIEW_MAX_HEIGHT);
+            view.getLayoutParams().height = recyclerViewHeight;
+            view.requestLayout();
+
+        }else{
+            view.post(new Runnable() {
+                @Override
+                public void run() {
+                    int viewMeasuredHeight = view.getMeasuredHeight();
+                    int maxHeight = llGroupRoot.getMeasuredHeight()
+                            - DeviceUtil.dpToPx(view.getContext(), 48) //title bar
+                            - DeviceUtil.dpToPx(view.getContext(), 48); //spacing
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        maxHeight = maxHeight - DeviceUtil.getStatusBarHeight(getContext()); //status bar
+                    }
+
+                    if (viewMeasuredHeight < maxHeight) {
+                        view.getLayoutParams().height = viewMeasuredHeight;
+                    } else {
+                        view.getLayoutParams().height = maxHeight;
+                    }
+
+                    recyclerViewHeight = view.getLayoutParams().height;
+                    view.requestLayout();
                 }
-                view.requestLayout();
-            }
-        });
+            });
+        }
     }
 
     @Override

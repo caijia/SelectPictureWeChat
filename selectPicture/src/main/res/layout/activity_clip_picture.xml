@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:maxLines="1"
-            android:text="裁剪"
+            android:text="@string/select_pic_clip"
             android:textColor="@android:color/white"
             android:textSize="18sp" />
 
@@ -26,7 +26,7 @@
             android:id="@+id/clip_tv"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:text="使用"
+            android:text="@string/select_pic_positive"
             android:paddingLeft="12dp"
             android:paddingRight="12dp"
             android:gravity="center"

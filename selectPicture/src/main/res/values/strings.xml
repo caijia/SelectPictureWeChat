@@ -5,4 +5,9 @@
     <string name="sm_all_image">所有图片</string>
     <string name="sm_all_video">所有视频</string>
     <string name="sm_all_image_video">图片和视频</string>
+    <string name="select_pic_positive_multi">确定({0}/{1})</string>
+    <string name="select_pic_positive">确定</string>
+    <string name="select_pic_images_number">%d张</string>
+    <string name="select_pic_take_picture">拍摄照片</string>
+    <string name="select_pic_clip">裁剪</string>
 </resources>

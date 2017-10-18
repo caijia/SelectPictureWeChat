@@ -16,6 +16,6 @@ public class MediaGroupAdapter extends LoadMoreDelegationAdapter{
     public MediaGroupAdapter(@NonNull Context context,
                              @Nullable MediaGroupItemDelegate.OnItemClickListener itemClickListener) {
         super(false, null);
-        delegateManager.addDelegate(new MediaGroupItemDelegate(itemClickListener));
+        delegateManager.addDelegate(new MediaGroupItemDelegate(context,itemClickListener));
     }
 }
