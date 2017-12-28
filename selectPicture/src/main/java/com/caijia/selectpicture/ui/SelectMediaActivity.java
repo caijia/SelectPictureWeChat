@@ -72,6 +72,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
     private static final String PARAMS_MULTI_SELECT = "params:can_multi_select";
     private static final String PARAMS_HAS_CAMERA = "params:has_camera";
     private static final String PARAMS_MAX_SELECT_NUM = "params:max_select_num";
+    private static final String PARAMS_SELECTED_ITEMS = "params:selected_items";
 
     /**
      * 选择类型,图片或视频
@@ -92,6 +93,11 @@ public class SelectMediaActivity extends AppCompatActivity implements
      * 是否有照相功能
      */
     private boolean hasCamera;
+
+    /**
+     * 初始化选中,页面进来默认选中的Item集合
+     */
+    private List<MediaBean> initSelectedItems;
     private File takePictureSaveFile;
     private MediaAdapter mMediaAdapter;
     private TextView titleTv;
@@ -145,10 +151,12 @@ public class SelectMediaActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         if (intent != null && intent.getExtras() != null) {
-            mediaType = intent.getExtras().getInt(PARAMS_MEDIA_TYPE);
-            canMultiSelect = intent.getExtras().getBoolean(PARAMS_MULTI_SELECT);
-            maxSelectNum = intent.getExtras().getInt(PARAMS_MAX_SELECT_NUM);
-            hasCamera = intent.getExtras().getBoolean(PARAMS_HAS_CAMERA);
+            Bundle args = intent.getExtras();
+            mediaType = args.getInt(PARAMS_MEDIA_TYPE);
+            canMultiSelect = args.getBoolean(PARAMS_MULTI_SELECT);
+            maxSelectNum = args.getInt(PARAMS_MAX_SELECT_NUM);
+            hasCamera = args.getBoolean(PARAMS_HAS_CAMERA);
+            initSelectedItems = args.getParcelableArrayList(PARAMS_SELECTED_ITEMS);
         }
 
         tvMultiSelect = (TextView) findViewById(R.id.tv_multi_select);
@@ -171,6 +179,10 @@ public class SelectMediaActivity extends AppCompatActivity implements
         loadMedia();
         selectPictureGroupRl.setOnClickListener(this);
         tvMultiSelect.setOnClickListener(this);
+
+        if (initSelectedItems != null && !initSelectedItems.isEmpty()) {
+            onItemSelected(initSelectedItems);
+        }
     }
 
     private void loadMedia() {
@@ -212,8 +224,34 @@ public class SelectMediaActivity extends AppCompatActivity implements
         }
 
         this.groupList = groupList;
+        initSelectedItems(list);
         mMediaAdapter.setSourceData(list);
         mMediaAdapter.updateItems(list);
+    }
+
+    /**
+     * 选中Item
+     * @param list
+     */
+    private void initSelectedItems(List<MediaBean> list) {
+        if (initSelectedItems == null || initSelectedItems.isEmpty() || list == null || list.isEmpty()) {
+            return;
+        }
+
+        int size = 0;
+        for (MediaBean bean : list) {
+            for (MediaBean initSelectedItem: initSelectedItems) {
+                if (initSelectedItem.getPath().equals(bean.getPath())) {
+                    bean.setSelect(true);
+                    ++ size;
+                    break;
+                }
+            }
+
+            if (size == initSelectedItems.size()) {
+                break;
+            }
+        }
     }
 
     @Override
@@ -377,8 +415,13 @@ public class SelectMediaActivity extends AppCompatActivity implements
     }
 
     private void sendMediaBean(MediaBean item) {
+        if (selectedItems == null) {
+            selectedItems = new ArrayList<>();
+            selectedItems.add(item);
+        }
         Intent i = new Intent();
         i.putExtra(RESULT_MEDIA, item);
+        i.putParcelableArrayListExtra(RESULT_MULTI_MEDIA, (ArrayList<? extends Parcelable>) selectedItems);
         setResult(RESULT_OK, i);
     }
 
@@ -443,6 +486,15 @@ public class SelectMediaActivity extends AppCompatActivity implements
 
         public IntentBuilder maxSelectNum(int maxSelectNum) {
             i.putExtra(PARAMS_MAX_SELECT_NUM, maxSelectNum);
+            return this;
+        }
+
+        public IntentBuilder selectedItems(List<MediaBean> selectItems) {
+            if (selectItems != null && !selectItems.isEmpty()) {
+                ArrayList<MediaBean> list = new ArrayList<>();
+                list.addAll(selectItems);
+                i.putParcelableArrayListExtra(PARAMS_SELECTED_ITEMS, list);
+            }
             return this;
         }
 

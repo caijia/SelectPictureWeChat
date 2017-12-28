@@ -13,6 +13,9 @@ import com.caijia.selectpicture.ui.ClipPictureActivity;
 import com.caijia.selectpicture.ui.SelectMediaActivity;
 import com.caijia.selectpicture.utils.ImageLoader;
 import com.caijia.selectpicture.utils.MediaType;
+import com.caijia.selectpicture.utils.ToastManager;
+
+import java.util.List;
 
 import static com.caijia.selectpicture.ui.ClipPictureActivity.CLIP_OUTPUT_IMAGE_PATH;
 
@@ -20,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int SELECT_MEDIA_RQ = 6961;
     private static final int REQ_CLIP_IMAGE = 2000;
+    private static final int SELECT_MULTI_IMAGE = 9099;
     TextView resultTv;
     ImageView ivClipResult;
 
@@ -30,9 +34,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         ivClipResult = (ImageView) findViewById(R.id.iv_clip_result);
         Button localPicBtn = (Button) findViewById(R.id.local_picture_btn);
-        Button clipImageBtn = (Button) findViewById(R.id.clip_image_btn);
+        Button selectMultiImage = (Button) findViewById(R.id.select_multi_image);
         localPicBtn.setOnClickListener(this);
-        clipImageBtn.setOnClickListener(this);
+        selectMultiImage.setOnClickListener(this);
         resultTv = (TextView) findViewById(R.id.result_tv);
     }
 
@@ -43,21 +47,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent i = new SelectMediaActivity.IntentBuilder(this)
                         .mediaType(MediaType.IMAGE)
                         .canMultiSelect(false)
-                        .maxSelectNum(6)
                         .hasCamera(true)
                         .build();
                 startActivityForResult(i, SELECT_MEDIA_RQ);
                 break;
             }
 
-            case R.id.clip_image_btn:{
+            case R.id.select_multi_image:{
                 Intent i1 = new SelectMediaActivity.IntentBuilder(this)
-                        .mediaType(MediaType.IMAGE_VIDEO)
-                        .canMultiSelect(true)
-                        .maxSelectNum(6)
-                        .hasCamera(true)
+                        .mediaType(MediaType.IMAGE)  //选择图片
+                        .canMultiSelect(true)       //是否可以多选
+                        .maxSelectNum(6)     //多选最大值
+                        .hasCamera(true)    //是否可以照相,图片列表第一个为照相按钮
+                        .selectedItems(selectedItems)  //初始化选中图片
                         .build();
-                startActivity(i1);
+                startActivityForResult(i1,SELECT_MULTI_IMAGE);
                 break;
             }
         }
@@ -83,19 +87,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case SELECT_MEDIA_RQ:{
                 Bundle args = data.getExtras();
                 if (args != null) {
-                    MediaBean mediaBean = args.getParcelable(SelectMediaActivity.RESULT_MEDIA);
-                    if (mediaBean != null) {
-                        resultTv.setText(mediaBean.getPath());
+                    selectedItems = args.getParcelableArrayList(SelectMediaActivity.RESULT_MULTI_MEDIA);
+                    if (selectedItems != null && !selectedItems.isEmpty()) {
+                        MediaBean bean = selectedItems.get(0);
+                        resultTv.setText(bean.getPath());
                         Intent i = new ClipPictureActivity.IntentBuilder(this)
                                 .aspectX(1)
                                 .aspectY(1)
-                                .inputImagePath(mediaBean.getPath())
+                                .inputImagePath(bean.getPath())
                                 .build();
                         startActivityForResult(i, REQ_CLIP_IMAGE);
                     }
                 }
                 break;
             }
+
+            case SELECT_MULTI_IMAGE:{
+                Bundle args = data.getExtras();
+                if (args != null) {
+                    selectedItems = args.getParcelableArrayList(SelectMediaActivity.RESULT_MULTI_MEDIA);
+                    ToastManager.getInstance(this).showToast("逗逼你选了" + selectedItems.size() + "张图没给你显示");
+                }
+                break;
+            }
         }
     }
+
+    private List<MediaBean> selectedItems;
 }
