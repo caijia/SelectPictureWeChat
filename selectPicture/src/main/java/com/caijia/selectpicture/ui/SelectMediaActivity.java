@@ -417,8 +417,8 @@ public class SelectMediaActivity extends AppCompatActivity implements
     private void sendMediaBean(MediaBean item) {
         if (selectedItems == null) {
             selectedItems = new ArrayList<>();
-            selectedItems.add(item);
         }
+        selectedItems.add(item);
         Intent i = new Intent();
         i.putExtra(RESULT_MEDIA, item);
         i.putParcelableArrayListExtra(RESULT_MULTI_MEDIA, (ArrayList<? extends Parcelable>) selectedItems);

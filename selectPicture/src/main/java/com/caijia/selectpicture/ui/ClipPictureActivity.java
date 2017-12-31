@@ -136,7 +136,7 @@ public class ClipPictureActivity extends AppCompatActivity implements ClipImageV
 
         int statusBarColor = ContextCompat.getColor(this, R.color.color_ms_primary_dark);
         StatusBarUtil.setTranslucentStatus(this);
-        StatusBarUtil.setStatusBarPlaceColor(this,false,statusBarColor);
+        StatusBarUtil.setStatusBarPlaceColor(this, false, statusBarColor);
         StatusBarUtil.addStatusBarHeightMarginTop(toolbar);
 
         clipImageView = (ClipImageView) findViewById(R.id.clip_image_view);
@@ -224,27 +224,23 @@ public class ClipPictureActivity extends AppCompatActivity implements ClipImageV
         if (saveFilePath == null) {
             String fileName = String.format("%s.jpg", CLIP_IMAGE_NAME);
             File file = FileUtil.createDiskCacheFile(getApplicationContext(), IMAGE_SAVE_DIR, fileName);
-            if (file != null) {
-                saveFilePath = file.getAbsolutePath();
-            }
+            saveFilePath = file.getAbsolutePath();
         }
-        if (saveFilePath != null) {
-            BufferedOutputStream bos = null;
-            try {
-                bos = new BufferedOutputStream(new FileOutputStream(saveFilePath));
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                saveFilePath = null;
+        BufferedOutputStream bos = null;
+        try {
+            bos = new BufferedOutputStream(new FileOutputStream(saveFilePath));
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            saveFilePath = null;
 
-            } finally {
-                try {
-                    if (bos != null) {
-                        bos.close();
-                    }
-                } catch (Exception e) {
-                    saveFilePath = null;
+        } finally {
+            try {
+                if (bos != null) {
+                    bos.close();
                 }
+            } catch (Exception e) {
+                saveFilePath = null;
             }
         }
         if (saveFilePath != null && imageOrientation != ExifInterface.ORIENTATION_NORMAL) {
@@ -372,6 +368,7 @@ public class ClipPictureActivity extends AppCompatActivity implements ClipImageV
         /**
          * 裁剪结果的文件保存路径,如果不设置,通过{@link #CLIP_OUTPUT_IMAGE_PATH}来取路径
          * 该值可能为null
+         *
          * @param outputImagePath
          * @return
          */
@@ -383,6 +380,7 @@ public class ClipPictureActivity extends AppCompatActivity implements ClipImageV
         /**
          * 如果裁剪结果需要采样,设置targetWidth,默认为屏幕宽度
          * 使用该值时,请设置{@link #clipResultNeedSample(boolean)} 为true,否则无效
+         *
          * @param targetWidth
          * @return
          */
