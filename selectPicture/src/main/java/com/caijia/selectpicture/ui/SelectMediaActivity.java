@@ -188,10 +188,6 @@ public class SelectMediaActivity extends AppCompatActivity implements
         loadMedia();
         selectPictureGroupRl.setOnClickListener(this);
         tvMultiSelect.setOnClickListener(this);
-
-        if (initSelectedItems != null && !initSelectedItems.isEmpty()) {
-            onItemSelected(initSelectedItems);
-        }
     }
 
     private void loadMedia() {
@@ -219,6 +215,10 @@ public class SelectMediaActivity extends AppCompatActivity implements
 
     @Override
     public void onGetMediaFinish(@NonNull List<MediaBean> list, @NonNull List<MediaGroup> groupList) {
+        if (initSelectedItems != null && !initSelectedItems.isEmpty()) {
+            onItemSelected(initSelectedItems);
+        }
+
         bottomBarLl.setVisibility(list.isEmpty() ? View.GONE : View.VISIBLE);
         if (groupList.isEmpty()) {
             return;
@@ -421,11 +421,8 @@ public class SelectMediaActivity extends AppCompatActivity implements
                 if (onlyLook || canMultiSelect) {
                     String path = takePictureSaveFile.getPath();
                     if (!TextUtils.isEmpty(path)) {
-                        List<MediaBean> mediaBeanList = MediaManager.getInstance().queryImage(this, path);
-                        if (mediaBeanList != null && !mediaBeanList.isEmpty()) {
-                            MediaBean mediaBean = mediaBeanList.get(0);
-                            updateMediaAdapter(mediaBean);
-                        }
+                        MediaBean mediaBean = new MediaBean(path, MediaType.IMAGE);
+                        updateMediaAdapter(mediaBean);
                     }
 
                 } else {
@@ -526,7 +523,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
             return this;
         }
 
-        public IntentBuilder onlyLook(boolean onlyLook){
+        public IntentBuilder onlyLook(boolean onlyLook) {
             i.putExtra(PARAMS_ONLY_LOOK, onlyLook);
             if (onlyLook) {
                 i.putExtra(PARAMS_MULTI_SELECT, false);
