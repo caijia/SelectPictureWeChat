@@ -7,10 +7,13 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.caijia.selectpicture.R;
 import com.caijia.selectpicture.bean.MediaBean;
 import com.caijia.selectpicture.bean.MediaGroup;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -132,29 +135,39 @@ public class MediaManager {
         }.execute();
     }
 
+    private List<MediaBean> queryImage(Context context) {
+        return queryImage(context, null);
+    }
+
     /**
      * 查询所有图片(去除gif)
      * //"image/png","image/jpeg","image/jpg"
      * @param context
      * @return
      */
-    private List<MediaBean> queryImage(Context context) {
+    public List<MediaBean> queryImage(Context context,String filePath) {
         List<MediaBean> list = new ArrayList<>();
+        filePath = TextUtils.isEmpty(filePath) ? "" : filePath;
 
         String selection;
         String[] selectionArgs;
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-            selection = String.format("%s>? and %s>? and %s>? and %s!=?",
+            selection = String.format("%s>? and %s>? and %s>? and %s!=? and %s"
+                            + (TextUtils.isEmpty(filePath) ? "!=" : "=") + "?",
                     MediaStore.Images.Media.SIZE,
                     MediaStore.Images.Media.WIDTH,
                     MediaStore.Images.Media.HEIGHT,
-                    MediaStore.Images.Media.MIME_TYPE);
-            selectionArgs = new String[]{"0", "0", "0","image/gif"};
+                    MediaStore.Images.Media.MIME_TYPE,
+                    MediaStore.Images.Media.DATA);
+            selectionArgs = new String[]{"0", "0", "0","image/gif",filePath};
 
         } else {
-            selection = String.format("%s>? and %s!=?",
-                    MediaStore.Images.Media.SIZE,MediaStore.Images.Media.MIME_TYPE);
-            selectionArgs = new String[]{"0","image/gif"};
+            selection = String.format("%s>? and %s!=? and %s"
+                            + (TextUtils.isEmpty(filePath) ? "!=" : "=") + "?",
+                    MediaStore.Images.Media.SIZE,
+                    MediaStore.Images.Media.MIME_TYPE,
+                    MediaStore.Images.Media.DATA);
+            selectionArgs = new String[]{"0","image/gif",filePath};
         }
 
         Cursor cursor = context.getContentResolver().query(
@@ -256,11 +269,49 @@ public class MediaManager {
             MediaGroup group = new MediaGroup();
             String parentPath = entry.getKey();
             group.setMediaType(mediaType);
+            group.setAbsolutePath(parentPath);
             group.setGroupName(parentPath.substring(parentPath.lastIndexOf(File.separator) + 1));
             group.setMediaList(entry.getValue());
             groupList.add(group);
         }
         return groupList;
+    }
+
+    public void addToMediaGroup(int mediaType, List<MediaGroup> groupList, MediaBean bean) {
+        if (groupList == null) {
+            return;
+        }
+        String parentPath = new File(bean.getPath()).getParentFile().getAbsolutePath();
+        boolean isExistGroup = false;
+        for (MediaGroup mediaGroup : groupList) {
+            if (TextUtils.equals(parentPath, mediaGroup.getAbsolutePath())) {
+                MediaBean mediaBean = mediaGroup.getFirst();
+                boolean addToFirst = mediaBean != null && mediaBean.getMediaType() != MediaType.CAMERA;
+                mediaGroup.addMediaBean(addToFirst ? 0 : 1, bean);
+                isExistGroup = true;
+                break;
+            }
+        }
+
+        if (!isExistGroup) {
+            List<MediaBean> mediaBeanList = new ArrayList<>();
+            mediaBeanList.add(bean);
+            MediaGroup group = new MediaGroup();
+            group.setMediaType(mediaType);
+            group.setAbsolutePath(parentPath);
+            group.setGroupName(parentPath.substring(parentPath.lastIndexOf(File.separator) + 1));
+            group.setMediaList(mediaBeanList);
+            groupList.add(group);
+
+        }
+
+        //第一组是包含所有图片的
+        if (!groupList.isEmpty()) {
+            MediaGroup firstGroup = groupList.get(0);
+            List<MediaBean> mediaList = firstGroup.getMediaList();
+            boolean isCamera = mediaList != null && !mediaList.isEmpty() && mediaList.get(0).getMediaType() == MediaType.CAMERA;
+            mediaList.add(isCamera ? 1 : 0, bean);
+        }
     }
 
     public interface OnGetLocalMediaListener {

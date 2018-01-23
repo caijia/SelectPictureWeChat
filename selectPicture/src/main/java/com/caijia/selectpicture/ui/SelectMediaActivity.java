@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.FrameLayout;
@@ -73,6 +74,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
     private static final String PARAMS_HAS_CAMERA = "params:has_camera";
     private static final String PARAMS_MAX_SELECT_NUM = "params:max_select_num";
     private static final String PARAMS_SELECTED_ITEMS = "params:selected_items";
+    private static final String PARAMS_ONLY_LOOK = "params:only_look";
 
     /**
      * 选择类型,图片或视频
@@ -98,6 +100,12 @@ public class SelectMediaActivity extends AppCompatActivity implements
      * 初始化选中,页面进来默认选中的Item集合
      */
     private List<MediaBean> initSelectedItems;
+
+    /**
+     * 当为true时,点击图片无响应,仅仅只是看图和拍照
+     */
+    private boolean onlyLook;
+
     private File takePictureSaveFile;
     private MediaAdapter mMediaAdapter;
     private TextView titleTv;
@@ -157,6 +165,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
             maxSelectNum = args.getInt(PARAMS_MAX_SELECT_NUM);
             hasCamera = args.getBoolean(PARAMS_HAS_CAMERA);
             initSelectedItems = args.getParcelableArrayList(PARAMS_SELECTED_ITEMS);
+            onlyLook = args.getBoolean(PARAMS_ONLY_LOOK);
         }
 
         tvMultiSelect = (TextView) findViewById(R.id.tv_multi_select);
@@ -211,26 +220,28 @@ public class SelectMediaActivity extends AppCompatActivity implements
     @Override
     public void onGetMediaFinish(@NonNull List<MediaBean> list, @NonNull List<MediaGroup> groupList) {
         bottomBarLl.setVisibility(list.isEmpty() ? View.GONE : View.VISIBLE);
+        if (groupList.isEmpty()) {
+            return;
+        }
+
         if (hasCamera) {
             //第一项为照相图标
-            if (!groupList.isEmpty()) {
-                MediaGroup mediaGroup = groupList.get(0);
-                MediaBean mediaBean = mediaGroup.getFirst();
-                if (mediaBean != null && mediaBean.getMediaType() != MediaType.CAMERA) {
-                    mediaGroup.addMediaBean(0, new MediaBean(MediaType.CAMERA));
-                }
+            MediaGroup mediaGroup = groupList.get(0);
+            MediaBean mediaBean = mediaGroup.getFirst();
+            if (mediaBean != null && mediaBean.getMediaType() != MediaType.CAMERA) {
+                mediaGroup.addMediaBean(0, new MediaBean(MediaType.CAMERA));
             }
-            list.add(0, new MediaBean(MediaType.CAMERA));
         }
 
         this.groupList = groupList;
         initSelectedItems(list);
         mMediaAdapter.setSourceData(list);
-        mMediaAdapter.updateItems(list);
+        mMediaAdapter.updateItems(groupList.get(0).getMediaList());
     }
 
     /**
      * 选中Item
+     *
      * @param list
      */
     private void initSelectedItems(List<MediaBean> list) {
@@ -240,10 +251,10 @@ public class SelectMediaActivity extends AppCompatActivity implements
 
         int size = 0;
         for (MediaBean bean : list) {
-            for (MediaBean initSelectedItem: initSelectedItems) {
+            for (MediaBean initSelectedItem : initSelectedItems) {
                 if (initSelectedItem.getPath().equals(bean.getPath())) {
                     bean.setSelect(true);
-                    ++ size;
+                    ++size;
                     break;
                 }
             }
@@ -259,7 +270,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
         if (v == selectPictureGroupRl) {
             toggleFragment();
 
-        } else if (v == tvMultiSelect) {
+        } else if (!onlyLook && v == tvMultiSelect) {
             //多选确定
             Intent i = new Intent();
             i.putParcelableArrayListExtra(RESULT_MULTI_MEDIA, (ArrayList<? extends Parcelable>) selectedItems);
@@ -406,12 +417,29 @@ public class SelectMediaActivity extends AppCompatActivity implements
                     e.printStackTrace();
                 }
 
-                //照相完成,不动态更新相册
-                sendMediaBean(new MediaBean(takePictureSaveFile.getPath(), MediaType.IMAGE));
-                finish();
+                //照相完成
+                if (onlyLook || canMultiSelect) {
+                    String path = takePictureSaveFile.getPath();
+                    if (!TextUtils.isEmpty(path)) {
+                        List<MediaBean> mediaBeanList = MediaManager.getInstance().queryImage(this, path);
+                        if (mediaBeanList != null && !mediaBeanList.isEmpty()) {
+                            MediaBean mediaBean = mediaBeanList.get(0);
+                            updateMediaAdapter(mediaBean);
+                        }
+                    }
+
+                } else {
+                    sendMediaBean(new MediaBean(takePictureSaveFile.getPath(), MediaType.IMAGE));
+                    finish();
+                }
                 break;
             }
         }
+    }
+
+    private void updateMediaAdapter(MediaBean bean) {
+        MediaManager.getInstance().addToMediaGroup(MediaType.IMAGE, groupList, bean);
+        mMediaAdapter.updateItems(groupList.get(0).getMediaList());
     }
 
     private void sendMediaBean(MediaBean item) {
@@ -434,7 +462,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
      */
     @Override
     public void onItemClick(int position, MediaBean item, List<MediaBean> selectedItems) {
-        if (!canMultiSelect) {
+        if (!onlyLook && !canMultiSelect) {
             sendMediaBean(item);
             finish();
         }
@@ -494,6 +522,14 @@ public class SelectMediaActivity extends AppCompatActivity implements
                 ArrayList<MediaBean> list = new ArrayList<>();
                 list.addAll(selectItems);
                 i.putParcelableArrayListExtra(PARAMS_SELECTED_ITEMS, list);
+            }
+            return this;
+        }
+
+        public IntentBuilder onlyLook(boolean onlyLook){
+            i.putExtra(PARAMS_ONLY_LOOK, onlyLook);
+            if (onlyLook) {
+                i.putExtra(PARAMS_MULTI_SELECT, false);
             }
             return this;
         }

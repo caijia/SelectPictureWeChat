@@ -72,13 +72,9 @@ public class ImageLoader {
                 .error(defaultResId)
                 .placeholder(defaultResId)
                 .fallback(defaultResId)
+                .skipMemoryCache(!useCache)
+                .diskCacheStrategy(useCache ? DiskCacheStrategy.AUTOMATIC:DiskCacheStrategy.NONE)
                 .dontAnimate();
-
-        if (!useCache) {
-            requestOptions.diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .skipMemoryCache(true);
-        }
-
         Glide.with(imageView.getContext())
                 .asBitmap()
                 .load(url)

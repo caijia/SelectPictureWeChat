@@ -6,11 +6,13 @@ import android.support.annotation.Nullable;
 
 import com.caijia.selectpicture.utils.MediaType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MediaGroup implements Parcelable {
 
     private String groupName;
+    private String absolutePath;
     private List<MediaBean> mediaList;
     private int mediaType;
     private boolean select;
@@ -23,6 +25,14 @@ public class MediaGroup implements Parcelable {
     }
 
     public MediaGroup() {
+    }
+
+    public String getAbsolutePath() {
+        return absolutePath;
+    }
+
+    public void setAbsolutePath(String absolutePath) {
+        this.absolutePath = absolutePath;
     }
 
     public boolean isSelect() {

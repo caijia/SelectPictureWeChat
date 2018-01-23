@@ -21,6 +21,12 @@
         android:layout_height="wrap_content"
         android:text="多选"/>
 
+    <Button
+        android:id="@+id/btn_only_look"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="仅看图不能点击"/>
+
     <ImageView
         android:id="@+id/iv_clip_result"
         android:layout_width="180dp"

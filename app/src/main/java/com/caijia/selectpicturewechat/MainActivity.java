@@ -34,9 +34,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         ivClipResult = (ImageView) findViewById(R.id.iv_clip_result);
         Button localPicBtn = (Button) findViewById(R.id.local_picture_btn);
+        Button lookPic = (Button) findViewById(R.id.btn_only_look);
         Button selectMultiImage = (Button) findViewById(R.id.select_multi_image);
         localPicBtn.setOnClickListener(this);
         selectMultiImage.setOnClickListener(this);
+        lookPic.setOnClickListener(this);
         resultTv = (TextView) findViewById(R.id.result_tv);
     }
 
@@ -60,12 +62,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .maxSelectNum(6)     //多选最大值
                         .hasCamera(true)    //是否可以照相,图片列表第一个为照相按钮
                         .selectedItems(selectedItems)  //初始化选中图片
+                        .onlyLook(isOnlyLook) //会自动变为单选模式，并且不能点击图片
                         .build();
                 startActivityForResult(i1,SELECT_MULTI_IMAGE);
                 break;
             }
+
+            case R.id.btn_only_look:
+                isOnlyLook = true;
+                break;
         }
     }
+
+    private boolean isOnlyLook;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
