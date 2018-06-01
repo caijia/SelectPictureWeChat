@@ -17,7 +17,7 @@ allprojects {
 
 2. 在Module的build.gradle文件里面加入
 ```
-compile 'com.caijia:selectPicture:1.1.3'
+compile 'com.caijia:selectPicture:1.1.9'
 ```
 
 ## 选择图片视频
