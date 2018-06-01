@@ -213,6 +213,8 @@ public class SelectMediaActivity extends AppCompatActivity implements
         MediaManager.getInstance().getLocalMedia(this, mediaType, this);
     }
 
+    private List<MediaBean> allMediaBean;
+
     @Override
     public void onGetMediaFinish(@NonNull List<MediaBean> list, @NonNull List<MediaGroup> groupList) {
         if (initSelectedItems != null && !initSelectedItems.isEmpty()) {
@@ -234,7 +236,8 @@ public class SelectMediaActivity extends AppCompatActivity implements
         }
 
         this.groupList = groupList;
-        initSelectedItems(list);
+        allMediaBean = list;
+        initSelectedItems(allMediaBean);
         mMediaAdapter.setSourceData(list);
         mMediaAdapter.updateItems(groupList.get(0).getMediaList());
     }
@@ -422,6 +425,7 @@ public class SelectMediaActivity extends AppCompatActivity implements
                     String path = takePictureSaveFile.getPath();
                     if (!TextUtils.isEmpty(path)) {
                         MediaBean mediaBean = new MediaBean(path, MediaType.IMAGE);
+                        allMediaBean.add(0, mediaBean);
                         updateMediaAdapter(mediaBean);
                     }
 
