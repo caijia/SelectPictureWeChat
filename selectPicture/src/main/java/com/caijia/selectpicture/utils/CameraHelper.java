@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -47,18 +49,24 @@ public class CameraHelper {
      */
     public
     @Nullable
-    String insertImage(Context context, File takePictureSaveFile) {
-        if (takePictureSaveFile == null) {
+    String insertImage(Context context, File file) {
+        if (file == null) {
             return null;
         }
 
-        String fileName = takePictureSaveFile.getName();
-        String filePath = takePictureSaveFile.getAbsolutePath();
+        String fileName = file.getName();
+        String filePath = file.getAbsolutePath();
         try {
             MediaStore.Images.Media.insertImage(context.getContentResolver(), filePath, fileName, "");
-            Uri contentUri = Uri.fromFile(takePictureSaveFile);
+            Uri uri;
+            int sdkInt = Build.VERSION.SDK_INT;
+            if (sdkInt < Build.VERSION_CODES.N) {
+                uri = Uri.fromFile(file);
+            } else {
+                uri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
+            }
             Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-            mediaScanIntent.setData(contentUri);
+            mediaScanIntent.setData(uri);
             context.sendBroadcast(mediaScanIntent);
 
         } catch (FileNotFoundException e) {
@@ -91,14 +99,28 @@ public class CameraHelper {
     public void takePicture(@NonNull Activity activity, String filePath, int requestCode) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File file = new File(filePath);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
+        int sdkInt = Build.VERSION.SDK_INT;
+        Uri uri;
+        if (sdkInt < Build.VERSION_CODES.N) {
+            uri = Uri.fromFile(file);
+        } else {
+            uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".provider", file);
+        }
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
         activity.startActivityForResult(intent, requestCode);
     }
 
     public void takePicture(@NonNull Fragment fragment, String filePath, int requestCode) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File file = new File(filePath);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
+        int sdkInt = Build.VERSION.SDK_INT;
+        Uri uri;
+        if (sdkInt < Build.VERSION_CODES.N) {
+            uri = Uri.fromFile(file);
+        } else {
+            uri = FileProvider.getUriForFile(fragment.getContext(), fragment.getActivity().getPackageName() + ".provider", file);
+        }
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
         fragment.startActivityForResult(intent, requestCode);
     }
 }
